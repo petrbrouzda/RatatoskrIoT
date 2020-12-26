@@ -1,7 +1,7 @@
 # RatatoskrIoT: aplikace pro mikrokontroléry ESP8266 a ESP32
 
 ## **v43d-espcam**
-Aplikace pro [modul ESP-CAM](https://www.banggood.com/ESP32-CAM-WiFi-+-bluetooth-Camera-Module-Development-Board-ESP32-With-Camera-Module-OV2640-IPEX-2_4G-SMA-Anten-p-1549751.html?p=FY1402881924201411VQ&zf=881924) - tj. ESP32 s PSRAM a 2 Mpix kamerou.
+Aplikace pro [modul ESP32-CAM](https://www.banggood.com/ESP32-CAM-WiFi-+-bluetooth-Camera-Module-Development-Board-ESP32-With-Camera-Module-OV2640-IPEX-2_4G-SMA-Anten-p-1549751.html?p=FY1402881924201411VQ&zf=881924) - tj. ESP32 s PSRAM a 2 Mpix kamerou.
 
 Periodicky jednou za N sekund se probudí a pokud se podaří připojení na WiFi, sejme fotku a odešle ji na server. Pak se uspí na zadanou dobu do deep sleep.
 
@@ -18,7 +18,7 @@ nastaví interval na 3 minuty.
 
 Pokud je pin **14** spojen na GND, je spuštěn konfigurační portál; pokud není zapojen/high, běží aplikace normálně.
 
-Modul ESP-CAM nemá USB port. Zde je schéma, jak propojit s USB-serial adaptérem pro naprogramování: https://randomnerdtutorials.com/esp32-cam-post-image-photo-server/
+Modul ESP32-CAM nemá USB port. Zde je schéma, jak propojit s USB-serial adaptérem pro naprogramování: https://randomnerdtutorials.com/esp32-cam-post-image-photo-server/
 
 ---
 
