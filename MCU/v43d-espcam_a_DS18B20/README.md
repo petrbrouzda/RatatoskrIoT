@@ -13,7 +13,7 @@ Data z teploměrů jsou kešována do RTCMEM, takže se ukládají, i když nen�
 Pokud není spojení, neukládá fotky na SD kartu.
 
 Aplikace má jednu vzdáleně konfigurovatelnou hodnotu - dobu, na jakou má jít do deep sleepu mezi jednotlivými běhy:
-- Jméno proměnné: sleep_sec; jednotka: sekundy
+- Jméno proměnné: **sleep_sec**; jednotka: sekundy
 
 Tedy
 >  sleep_sec=180
@@ -32,10 +32,10 @@ Modul ESP-CAM nemá USB port. Zde je schéma, jak propojit s USB-serial adaptér
 # Knihovny a kód třetích stran
 
 ## Nutné knihovny v Arduino IDE
-Pro všechny aplikace je nutné mít v library manageru nainstalováno:
+V library manageru je nutné mít nainstalováno:
 - Tasker 2.0.0
-- OneWire  2.3.5
-- DallasTemperature  3.8.0
+- **OneWire 2.3.5**
+- **DallasTemperature  3.8.0**-
 
 ## Knihovny a kód třetích stran 
 

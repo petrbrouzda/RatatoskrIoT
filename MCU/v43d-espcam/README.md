@@ -8,7 +8,7 @@ Periodicky jednou za N sekund se probudí a pokud se podaří připojení na WiF
 Pokud není spojení, neukládá fotky na SD kartu.
 
 Aplikace má jednu vzdáleně konfigurovatelnou hodnotu - dobu, na jakou má jít do deep sleepu mezi jednotlivými běhy:
-- Jméno proměnné: sleep_sec; jednotka: sekundy
+- Jméno proměnné: **sleep_sec**; jednotka: sekundy
 
 Tedy
 >  sleep_sec=180
