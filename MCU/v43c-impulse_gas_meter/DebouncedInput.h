@@ -3,7 +3,7 @@
 
 #include "src/platform/platform.h"
 
-// debounce cas pro zakmitani pri prenuti, msec
+// debounce cas pro zakmitani pri prepnuti, msec
 #define DEBOUNCE_TIME 100
 
 
