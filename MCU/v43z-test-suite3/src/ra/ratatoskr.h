@@ -7,7 +7,7 @@
 #include "raStorage.h"
 #include "raTelemetryPayload.h"
 
-#define RA_CORE_VERSION "4.3.3"
+#define RA_CORE_VERSION "4.3.4"
 
 // po chybe odesilani se nezkousi komunikovat po urcitou dobu
 #define RA_PAUSE_AFTER_ERR 15000
@@ -41,6 +41,11 @@ class ratatoskr
      * Definuje telemetricky kanal
      */ 
     int defineChannel( int deviceClass, int valueType, char * deviceName, long msgRateSec ); 
+
+    /**
+     * Definuje telemetricky kanal s prepoctovym faktorem
+     */ 
+    int defineChannel( int deviceClass, int valueType, char * deviceName, long msgRateSec, double prepoctovyFaktor ); 
 
     /**
      * priority 1-15, higher is better

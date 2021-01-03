@@ -33,6 +33,13 @@ void ratatoskr::checkParam( void* ptr )
     }
 }
 
+int ratatoskr::defineChannel( int deviceClass, int valueType, char * deviceName, long msgRateSec, double prepoctovyFaktor )
+{
+    char buffer[256];
+    sprintf( buffer, "%s|%f", deviceName, prepoctovyFaktor );
+    return this->defineChannel(  deviceClass,  valueType, buffer,  msgRateSec );
+}
+
 int ratatoskr::defineChannel( int deviceClass, int valueType, char * deviceName, long msgRateSec )
 {
     this->checkParam( this->telemetry );
