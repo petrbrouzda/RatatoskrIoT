@@ -17,6 +17,15 @@ Pokud není spojení na server, ukládá data do keše v RTCMEM a odešle je, a�
 
 Základní ukázka **low-power aplikace** na ESP8266. Každých N sekund se probudí, načte teplotu z teploměrů DS18B20 a odešle ji na server.
 
+Pokud není spojení na server, data se ztratí, protože procesor se po zadaném čase uspí a ESP8266 nemá dost RTCMEM, aby se tam daly kešovat data k odeslání.
+
+
+## **v43c-impulse_gas_meter**
+
+Základní ukázka aplikace načítající **impulzní vstup** (tedy ne kontinuální, spojitou veličinu, ale počet impulzů). Procesor běží nepřetržitě (neuspává se).
+
+Je zde předvedena i **úprava konfiguračního portálu,** aby se v něm dala zadat další hodnota.
+
 
 
 ## **v43d-espcam**
