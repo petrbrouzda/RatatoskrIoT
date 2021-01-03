@@ -7,7 +7,7 @@
 #include "raStorage.h"
 #include "raTelemetryPayload.h"
 
-#define RA_CORE_VERSION "4.3.2"
+#define RA_CORE_VERSION "4.3.3"
 
 // po chybe odesilani se nezkousi komunikovat po urcitou dobu
 #define RA_PAUSE_AFTER_ERR 15000

@@ -205,7 +205,9 @@ void networkConfig( const char * configApPass, bool runWifiOnStartup )
    wifiPoweredOn = false;
    
    if( runWifiOnStartup ) {
+
       startWifi();
+      
    } else {
 
 #ifdef USE_BLINKER

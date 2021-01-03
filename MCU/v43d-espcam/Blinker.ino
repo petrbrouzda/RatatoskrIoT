@@ -60,4 +60,15 @@ void raBlinker::setCode( int * code )
   interrupts();
 
   this->changeState();
+
+  /*
+  Serial.print( "raBlinker.setCode( " );
+  int i = 0;
+  while( 1 ) {
+    Serial.printf( "%d ", code[i] );
+    if( code[i]==0 || code[i]==-1 ) break;
+    i++;
+  }
+  Serial.println( ")" );
+  */
 }

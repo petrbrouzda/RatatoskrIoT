@@ -40,6 +40,7 @@ class raConnection
     void createLoginToken( BYTE *target, long serverTime );
     void createDataPayload( BYTE *target, BYTE *source, int sourceLen );
     long readServerTime();
+    int sendInt( unsigned char * dataKOdeslani, int dataLen );
     int sendBlobInt( unsigned char * blob, int blobSize, int startTime, char * desc, char * extension );
     void log_keys( unsigned char * key, unsigned char * iv );
     bool decryptBlock( char * encryptedData, char * plainText, int plainTextBuffSize );

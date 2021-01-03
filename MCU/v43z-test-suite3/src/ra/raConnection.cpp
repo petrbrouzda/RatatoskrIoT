@@ -130,7 +130,7 @@ void raConnection::createDataPayload( BYTE *target, BYTE *source, int sourceLen 
  * 1 = connection problem
  * 2 = invalid session, reconect later 
  */
-int raConnection::send( unsigned char * dataKOdeslani, int dataLen )
+int raConnection::sendInt( unsigned char * dataKOdeslani, int dataLen )
 {
     if( !this->connected ) {
         this->login();
@@ -183,6 +183,22 @@ int raConnection::send( unsigned char * dataKOdeslani, int dataLen )
     }        
     
     return 1;
+}
+
+
+/**
+ * 0 = OK
+ * 1 = connection problem
+ * 2 = invalid session, reconect later 
+ */
+int raConnection::send( unsigned char * dataKOdeslani, int dataLen )
+{
+    int rc = this->sendInt( dataKOdeslani, dataLen );
+    if( rc==2 ) {
+        // provedeme jeste jednou, tim dame sanci se prihlasit - to je nutne pri zmene konfigurace
+        rc = this->sendInt( dataKOdeslani, dataLen );
+    }
+    return rc;
 }
 
 
