@@ -134,7 +134,7 @@ void setup() {
   ch1 = ra->defineChannel( DEVCLASS_CONTINUOUS_MINMAXAVG, 8, "analog_in", 3600 );
 
   // nastavime spousteni mereni jednou za minutu
-  tasker.setTimeout( nactiHodnotu, 60000 );
+  tasker.setInterval( nactiHodnotu, 60000 );
 
   // nacteme jednou hodnotu, aby se prvni nacetla hned a ne az za 60 sekund
   nactiHodnotu();
@@ -221,6 +221,4 @@ Použití knihovny ESP8266WebServer ve verzi 1.0 v adresáři: C:\Users\brouzda\
 Použití knihovny Tasker ve verzi 2.0 v adresáři: C:\Users\brouzda\Documents\Arduino\libraries\Tasker 
 Použití knihovny Ticker ve verzi 1.0 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\Ticker 
 Použití knihovny ESP8266HTTPClient ve verzi 1.2 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\ESP8266HTTPClient 
-Použití knihovny OneWire ve verzi 2.3.5 v adresáři: C:\Users\brouzda\Documents\Arduino\libraries\OneWire 
-Použití knihovny DallasTemperature ve verzi 3.8.0 v adresáři: C:\Users\brouzda\Documents\Arduino\libraries\DallasTemperature 
 */
