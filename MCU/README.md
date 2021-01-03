@@ -1,15 +1,21 @@
 # RatatoskrIoT: aplikace pro mikrokontroléry ESP8266 a ESP32
 
 
+## **v43a-demo-power_always_on**
+
+Nejjednodušší kostra aplikace, kde **procesor běží nepřetržitě** (neuspává se). Aplikace periodicky měří hodnotu (zde napětí na analogovém vstupu) a odesílá ji na server.
+
+
 ## **v43b-low_power-DS18B20__ESP32**
 
-Základní ukázka low-power aplikace na ESP32. Každých N sekund se probudí, načte teplotu z teploměrů DS18B20 a odešle ji na server.
+Základní ukázka **low-power aplikace** na ESP32. Každých N sekund se probudí, načte teplotu z teploměrů DS18B20 a odešle ji na server.
+
 Pokud není spojení na server, ukládá data do keše v RTCMEM a odešle je, až spojení bude.
 
 
 ## **v43b-low_power-DS18B20__ESP8266**
 
-Základní ukázka low-power aplikace na ESP8266. Každých N sekund se probudí, načte teplotu z teploměrů DS18B20 a odešle ji na server.
+Základní ukázka **low-power aplikace** na ESP8266. Každých N sekund se probudí, načte teplotu z teploměrů DS18B20 a odešle ji na server.
 
 
 

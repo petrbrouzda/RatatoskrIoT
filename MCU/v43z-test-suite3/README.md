@@ -2,7 +2,7 @@
 
 ## **v43z-test-suite<#>**
 
-Testovací sady pro kontrolu funkce knihoven.
+Testovací sady pro kontrolu funkce knihoven. Musí fungovat na ESP32 i ESP8266.
 
 ---
 

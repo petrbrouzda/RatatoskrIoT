@@ -2,7 +2,7 @@
 
 ## **v43z-test-suite<#>**
 
-Testovací sady pro kontrolu funkce knihoven.
+Testovací sady pro kontrolu funkce knihoven. Funguje jen na ESP32, používá RTCMEM.
 
 ---
 
