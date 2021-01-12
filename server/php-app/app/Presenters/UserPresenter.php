@@ -264,6 +264,7 @@ final class UserPresenter extends BaseAdminPresenter
 
     public function deleteFormSucceeded(Form $form, array $values): void
     {
+        $this->checkUserRole( 'admin' );
         $id = $this->getParameter('id');
 
         if( $id ) {
