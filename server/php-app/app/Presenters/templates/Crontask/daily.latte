@@ -1,0 +1,9 @@
+{layout '../@layoutEmpty.latte'}
+
+{define content}
+{if ! $ip_not_allowed }
+{$result}
+{else}
+IP address not allowed.
+{/if}
+{/define}

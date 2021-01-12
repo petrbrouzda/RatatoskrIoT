@@ -1,0 +1,41 @@
+parameters:
+	# Heslo, kterým se šifrují hesla zařízení. Pozor, pokud ho změníte, přijdete o nastavená hesla!
+	masterPassword: 'heslo pro data'
+	# jen pro informaci u grafů
+	dataRetentionDays: 90
+	title: 'RatatoskrIoT'
+	# jen pro informaci u grafů
+	minYear: 2006
+	# e-mail adresa, ktera se nastavuje jako odesilatel notifikacnim mailum
+	from: 'mojeIoT@gmail.com'
+	# e-mail adresa administratora systemu - adresáta upozornění
+	admin: 'admin.adresa@example.com'
+	# linky v paticce stranky
+	links:
+		- {
+			name: 'Github'
+			link: 'https://github.com/petrbrouzda/RatatoskrIoT'
+		}
+		- {
+			name: 'Domů'
+			link: 'https://lovecka.info/' 
+		}
+    # z jakych adres smi byt spusten cron
+	cronAllowed:
+		- 127.0.0.1
+		- 192.168.32.242
+
+database:
+	dsn: 'mysql:host=127.0.0.1;dbname=ratatoskr'
+	user: uzivatel-db
+	password: heslo-db
+
+# pozor, u gmailu je treba nastavit povoleni posilani mailu z aplikaci (snizit zabezpeceni)
+mail:
+	smtp: true       
+	host: smtp.gmail.com
+	port: 465
+	username: mojeIoT@gmail.com
+	password: prihlasovaci-heslo
+	timeout: 60
+	secure: ssl

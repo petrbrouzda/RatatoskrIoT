@@ -1,0 +1,22 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Smazání grafu</h1>
+</div>
+
+<div class="px-2 pb-2 text-danger">
+    Skutečně chcete smazat graf '{$view->name}'? 
+</div>
+
+<div class="px-2 pb-2">
+    {control viewdeleteForm}
+</div>
+
+<div class="px-2 pb-2">
+    <a n:href="View:edit $view->id" class="btn btn-outline-primary btn-sm" role="button">Zpět beze změn</a>
+</div>
+
+
+{/define}

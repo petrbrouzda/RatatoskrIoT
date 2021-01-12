@@ -1,0 +1,55 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Smazání Uživatele</h1>
+</div>
+
+<div class="px-2 pb-2 text-danger">
+    Skutečně chcete smazat uživatele '{$userData['username']}' ({$userData['email']})? Tuto akci nebude možné vrátit zpět!
+</div>
+
+{foreach $devices->devices as $device}
+    {first}
+        <div class="px-2 pb-2">
+        Uživatel má následující zařízení. <span class="text-danger">Tato data budou smazána také!</span>
+
+        <div class="row pl-4">
+            <div class="col-6 col-md-2">
+                <b>Jméno zařízení</b>
+            </div>
+            <div class="col-6 col-md-3">
+                <b>Popis</b>
+            </div>
+        </div>  
+    {/first}
+    
+    <div class="row  pl-4 {if $iterator->odd}bg-light{/if}">
+        <div class="col-6 col-md-2">
+            {$device->attrs['name']}
+        </div>
+        <div class="col-6 col-md-3">
+            {$device->attrs['desc']}
+        </div>
+    </div>
+    
+    {last}
+        </div>
+    {/last}
+{/foreach}
+
+<div class="px-2 pb-2">
+    {control deleteForm}
+</div>
+
+<div class="px-2 pb-2">
+    <a n:href="User:show $userData['id']" class="btn btn-outline-primary btn-sm" role="button">Zpět beze změn</a>
+</div>
+
+<div class="px-2 pb-2">
+Upozornění: mazání může trvat i minutu... 
+</div>
+
+
+{/define}

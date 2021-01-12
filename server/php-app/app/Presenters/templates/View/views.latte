@@ -1,0 +1,63 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Moje grafy</h1>
+</div>
+
+<div class="px-2 pb-2">
+    <a n:href="View:viewsdetail" class="btn btn-outline-primary btn-sm" role="button">Detailní výpis</a>
+    <a n:href="View:create" class="btn btn-outline-primary btn-sm" role="button">Nový graf</a>
+</div>
+
+{if (sizeof($views)==0)}
+    <div class="row px-2 ">
+        Zatím nemáte žádné pohledy.
+    </div>
+{/if}
+
+{foreach $tokens as $token }
+    {first}
+        <div class="row px-2 text-secondary ">
+            <div class="col-4 col-md-2 ">Token</div>
+        </div>
+    {/first}
+
+    <div class="row px-2 bg-primary text-white ">
+        <div class="col-12 col-md-4 ">{$token}</div>
+    </div>
+
+    {foreach $tokenView[$token] as $view}
+
+        <div class="row pl-4"><div class="col-12">
+        
+        {first}
+            <div class="row pt-2 pr-2 text-secondary ">
+                <div class="col-4 col-md-3 ">Pohled</div>
+                <div class="col-1 col-md-1 ">#</div>
+                <div class="col-2 col-md-1 ">Zobrazení</div>
+                <div class="col-12 col-md-5 ">Popis</div>
+            </div>
+        {/first}
+
+        <div class="row pr-2 {if $iterator->odd}bg-light{/if} {if $iterator->last}mb-3{/if}">
+            <div class="col-4 col-md-3">
+                <b><a n:href="View:edit $view->id" class="">{$view->name}</a></b></div>
+            <div class="col-1 col-md-1">{$view->vorder}</div>
+            <div class="col-2 col-md-1">{$view->render}</div>
+            <div class="col-12 col-md-5"><i><small>{$view->desc}</small></i></b></div>
+            <div class="col-6 col-md-2">
+                <a href="../chart/view/{$token}/{$view->id}/?currentweek=1"  class="">Graf</a>
+                <a n:href="View:edit $view->id"  class="">Edit</a>
+            </div>
+        </div>
+
+        </div></div>
+
+    {/foreach}
+
+{/foreach}
+
+
+{/define}

@@ -1,0 +1,21 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Zařízení {$name}</h1>
+
+{control deviceForm}
+
+
+</div>
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Device:show $id" class="btn btn-outline-primary btn-sm" role="button">Zpět beze změny</a>
+        <a n:href="Device:delete $id" class="btn btn-outline-danger btn-sm" role="button">Smazat zařízení</a>
+    </div>
+</div>
+
+
+{/define}

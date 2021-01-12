@@ -1,0 +1,188 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Zařízení {$device['name']}</h1>
+</div>
+
+<div class="row px-2">
+    <div class="col-12">
+        <h3>Konfigurace zařízení</h3>
+        <i>Tuto konfiguraci nastavte v zařízení.</i>
+    </div>
+</div>
+
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-2">RA URL:</div>
+    <div class="col-12 col-md-10"><b>{$url}</b></div>
+</div>
+<div class="row px-2 ">
+    <div class="col-12 col-md-2">RA device name:</div>
+    <div class="col-12 col-md-10"><b>{$device['name']}</b></div>
+</div>
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-2">RA passphrase:</div>
+    <div class="col-12 col-md-10"><b>{$device['passphrase']}</b></div>
+</div>
+
+<div class="row px-2 pt-3">
+    <div class="col-12">
+        <h3>Informace</h3>
+    </div>
+</div>
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-2">Popis:</div>
+    <div class="col-12 col-md-10"><b>{$device['desc']}</b></div>
+</div>
+<div class="row px-2">
+    <div class="col-12 col-md-2">Provozovaná aplikace:</div>
+    <div class="col-12 col-md-10"><b>{$device['app_name']}</b></div>
+</div>
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-2">První přihlášení:</div>
+    <div class="col-12 col-md-10">
+        {if ($device['first_login']==NULL) }
+            <i>Zařízení se ještě nepřihlásilo přes rozhraní RatatoskrIoT, proto nebude vypsáno v monitoringu.</i>
+        {else}
+            <b>{$device['first_login']}</b>
+        {/if}
+    </div>
+</div>
+
+<div class="row px-2">
+    <div class="col-12 col-md-2">Poslední přihlášení:</div>
+{if ($device['problem_mark'])} 
+    <div class="col-12 col-md-10 text-danger"><b>
+        <i class="text-danger fas fa-exclamation-triangle"></i>
+        Zařízení má problém s přihlášením. Poslední neúspěšné přihlášení: 
+        {$device['last_bad_login']}.
+    </b></div>
+{else}
+    <div class="col-12 col-md-10"><b>{$device['last_login']}</b></div>
+{/if} 
+    
+</div>
+
+<div class="row px-2  bg-light"">
+    <div class="col-12 col-md-2">Bezpečnostní token pro JSON data:</div>
+    <div class="col-12 col-md-10"><b>{$device['json_token']}</b></div>
+</div>
+
+<div class="row px-2 ">
+    <div class="col-12 col-md-2">Bezpečnostní token pro galerii:</div>
+    <div class="col-12 col-md-10"><b>{$device['blob_token']}</b></div>
+</div>
+
+<div class="row px-2  bg-light"">
+    <div class="col-12 col-md-2">Kontrolovat v monitoringu:</div>
+    <div class="col-12 col-md-10"><b>{if ($device['monitoring']==1)}ano{else}ne{/if}</b></div>
+</div>
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Device:edit $device['id']" class="btn btn-outline-primary btn-sm" role="button">Upravit zařízení</a>
+        <a n:href="Device:sendconfig $device['id']" class="btn btn-outline-primary btn-sm" role="button">Poslat změnu konfigurace</a>
+    </div>
+</div>
+
+{if $device['config_data']}
+    <div class="px-2 pb-0 pt-4">
+        <h3>Změna konfigurace</h3>
+        <i class="far fa-share-square text-danger"></i>&nbsp;Pro zařízení čeká změna konfigurace:
+        <div class="px-4 py-0">
+            <i><pre>{$device['config_data']}</pre></i>
+        </div>
+    </div>
+{/if}
+
+{foreach $sensors as $sensor}
+    {first}
+        <div class="px-2 pb-0 pt-4">
+            <h3>Senzory</h3>
+        </div>
+        <div class="row pl-4 pr-1 py-0"><div class="col-12">
+            <div class="row text-secondary">
+                <div class="col-6 col-md-2">Senzor</div>
+                <div class="col-6 col-md-2">
+                    Stav
+                    <a href="#" data-toggle="tooltip" data-placement="top" title="Pro impulzní senzory denní suma (může mít cca minutu zpoždění). Pro ostatní poslední zaslaná hodnota (ihned)."
+                    ><i class="fas fa-question-circle"></i></a>
+                </div>
+                <div class="col-12 col-md-4">Popis</div>
+            </div>
+    {/first}
+
+    <div class="row {if $iterator->odd}bg-light{/if}">
+        <div class="col-6 col-md-2"><b><a n:href="Sensor:show $sensor['id']" >{$sensor['name']}</a>
+            {if ($sensor['warningIcon']>0)} 
+                <a href="#" data-toggle="tooltip" data-placement="top" title="Senzor nedodává data. Poslední data: {$sensor['last_data_time']}."
+                ><i class="{if ($sensor['warningIcon']==1)}text-danger{else}text-warning{/if} fas fa-exclamation-triangle"></i></a>
+            {/if}
+        </b></div>
+        <div class="col-6 col-md-2">
+            {if ($sensor['last_out_value']!=NULL)}
+                {$sensor['last_out_value']} {$sensor['unit']}
+
+                {if ($sensor['warn_max_fired'])} 
+                    <a href="#" data-toggle="tooltip" data-placement="top" title="Od {$sensor['warn_max_fired']} je hodnota nad limitem."
+                    ><i class="text-danger fas fa-arrow-circle-up"></i></a>
+                {/if}
+                {if ($sensor['warn_min_fired'])} 
+                    <a href="#" data-toggle="tooltip" data-placement="top" title="Od {$sensor['warn_min_fired']} je hodnota pod limitem."
+                    ><i class="text-danger fas fa-arrow-circle-down"></i></a>
+                {/if}
+            {else}  
+                - [{$sensor['unit']}]
+            {/if}
+            
+        </div>
+        <div class="col-12 col-md-4"><i>{$sensor['desc']}</i></div>
+        <div class="col-12 col-md-4">
+            <a href="../../chart/sensorstat/show/{$sensor['id']}/?current=1">Statistika</a>
+                · 
+            <a href="../../chart/sensor/show/{$sensor['id']}/?current=1">Graf</a>
+            · 
+            <a n:href="Sensor:show $sensor['id']" >Info</a>
+            · 
+            <a n:href="Sensor:edit $sensor['id']" >Edit</a>
+        </div>
+    </div>
+
+    {last}
+        </div></div>
+    {/last}
+{/foreach}
+
+{if ($device['json_token'])}
+<div class="px-2 pb-2 pt-4">
+    <h3>Data zařízení</h3>
+    Data ze senzorů zařízení ve formě JSON jsou dostupná zde: <b><a href="{$jsonUrl}">{$jsonUrl}</a></b>
+    <br><small>Každý, kdo zná toto URL, si může data zobrazit. Přístup k JSON souboru již dále <b>není chráněn heslen</b>.</small>
+</div>
+{/if}
+
+{if ($device['blob_token'])}
+<div class="px-2 pb-2 pt-4">
+    <h3>Galerie obrázků</h3>
+    Galerie obrázků (pokud je zařízení generuje) je dostupná zde: <b><a href="{$blobUrl}">{$blobUrl}</a></b>
+    <br><small>Každý, kdo zná toto URL, si může data zobrazit. Přístup k obrázkům již dále <b>není chráněn heslen</b>.</small>
+</div>
+{/if}
+
+{if ($soubory>0) }
+<div class="row px-2 pt-3">
+    <div class="col-12">
+        <h3>Soubory</h3>
+        U zařízení je uloženo <a n:href="Device:blobs $device['id']"><b>{$soubory}</b> souborů</a>.
+    </div>
+</div>
+{/if}
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Inventory:home" class="btn btn-primary btn-sm" role="button">Zpět</a>
+    </div>
+</div>
+
+{/define}

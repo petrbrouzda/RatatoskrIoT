@@ -1,0 +1,31 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Kódy jednotek</h1>
+Seznam zaregistrovaných kódů jednotek, které je možné používat v senzorech.
+</div>
+
+{foreach $units as $unit}
+    {first}
+        <div class="row px-2 bg-light">
+            <div class="col-2 col-lg-2 col-xl-1">
+                <b>ID</b>
+            </div>
+            <div class="col-8 col-lg-4">
+                <b>Jednotka</b>
+            </div>
+        </div>
+    {/first}
+    <div class="row px-2 {if $iterator->even}bg-light{/if}">
+        <div class="col-2 col-lg-2 col-xl-1">
+            {$unit['id']}
+        </div>
+        <div class="col-8 col-lg-4">
+            {$unit['unit']}
+        </div>
+    </div>
+{/foreach}
+
+{/define}

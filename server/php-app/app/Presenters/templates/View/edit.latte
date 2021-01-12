@@ -1,0 +1,115 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Vlastnosti grafu</h1>
+</div>
+
+<div class="px-2 pb-2">
+    {control viewForm}
+</div>
+
+<div class="px-2 pb-2">
+    <a n:href="View:views" class="btn btn-outline-primary btn-sm" role="button">Zpět na seznam grafů</a>
+    {if (sizeof($view->items)>0)}
+        <a href="../../chart/view/{$view->token}/{$view->id}/?currentweek=1" class="btn btn-outline-primary btn-sm" role="button">Ukázat graf</a>
+    {/if}
+    <a n:href="View:delete $view->id" class="btn btn-outline-danger btn-sm" role="button">Smazat graf</a>
+</div>
+
+{if (sizeof($view->items)==0)}
+    <div class="row pl-2 pr-2 pt-4">
+        <div class="col">
+            <h3>Graf je prázdný</h3>
+            Graf zatím neobsahuje žádné datové řady - je načase nějakou <a n:href="Vitem:create viewid => $view->id">založit</a>.
+            <br>
+            Graf bez datových řad <b>nefunguje</b> a pokud si ho někdo zkusí zobrazit, uvidí chybu serveru.
+        </div>
+    </div>
+{else}
+
+<div class="px-2 pb-2 pt-4">
+    <h3>Přístup ke grafu</h3>
+    Adresa grafu je <b><a href="{$url}">{$url}</a></b>
+    <br><small>Každý, kdo zná toto URL, si může graf zobrazit - a stejně tak i všechny grafy se stejným zabezpečovacím tokenem. 
+    Přístup ke grafu již dále <b>není chráněn heslen</b>.</small>
+</div>
+
+
+<div class="pb-2 pt-4 px-2">
+<h3>Obsah grafu</h3>
+</div>
+
+{if $noneLeft }
+<div class="pt-2 pl-2 pr-2 bg-danger text-white ">
+    Žádná datová řada nemá nastavenou levou osu Y, graf nebude fungovat!
+</div>
+{/if}
+
+
+{foreach $view->items as $item}
+    {first}
+        <div class="row pt-2 pl-2 pr-2 text-secondary ">
+            <div class="col-12 col-md-3 ">Senzory</div>
+            <div class="col-1 col-md-1">#</div>
+            <div class="col-4 col-md-2">Použitá hodnota</div>
+            <div class="col-2 col-md-1 ">Jednotka</div>
+            <div class="col-4 col-md-1">Osa Y</div>
+            <div class="col-2 col-md-1">Aktuální rok</div>
+            <div class="col-2 col-md-1 ">Srovnávací rok</div>
+        </div>
+    {/first}
+    
+    <div class="row pl-2 pr-2 {if $iterator->odd}bg-light{/if} {if $iterator->last}mb-3{/if}">
+        <div class="col-12 col-md-3">
+        {foreach $item->sensorIds as $sid}
+            {if isset($sensors[$sid]) }
+                <a href="../../chart/sensorstat/show/{$sid}/">{$sensors[$sid]->dev_name}:{$sensors[$sid]->name}</a>{sep}, {/sep}
+            {else}
+                <i class="text-danger fas fa-exclamation-triangle"></i> Senzor byl smazán, tuto řadu smažte!
+            {/if}
+        {/foreach}
+        </div>
+        <div class="col-1 col-md-1">{$item->vorder}</div>
+        <div class="col-4 col-md-2">{$item->sourceDesc}</div>
+        <div class="col-2 col-md-1">
+            {if isset($sensors[$item->sensorIds[0]]) }
+                {$sensors[$item->sensorIds[0]]->unit}
+            {else}
+                ?
+            {/if}
+        </div>
+        <div class="col-4 col-md-1">
+            {if $item->axisY==1}
+                <i class="fa fa-angle-double-left" aria-hidden="true"></i> levá
+            {else}
+                pravá <i class="fa fa-angle-double-right" aria-hidden="true"></i>
+            {/if}
+        </div>
+        <div class="col-2 col-md-1">
+            <table><tr><td width="15px" height="15px" bgcolor="{$item->getColor(1)->getHtmlColor()}">
+                &nbsp;
+            </td></tr></table>
+        </div>
+        <div class="col-2 col-md-1">
+            <table><tr><td width="15px" height="15px" bgcolor="{$item->getColor(2)->getHtmlColor()}">
+                &nbsp;
+            </td></tr></table>
+        </div>
+        <div class="col-6 col-md-2">
+            <a n:href="Vitem:edit $item->id, viewid => $view->id" class="btn btn-outline-primary btn-sm" role="button">Edit</a>
+            <a n:href="Vitem:delete $item->id, viewid => $view->id" class="btn btn-outline-danger btn-sm" role="button">Smazat</a>
+        </div>
+    </div>
+{/foreach}
+
+<div class="row pt-2 pl-2 pr-2 ">
+    <div class="col">
+        <a n:href="Vitem:create viewid => $view->id" class="btn btn-outline-primary btn-sm" role="button">Přidat datovou řadu</a>
+    </div>
+</div>
+        
+{/if}
+
+{/define}

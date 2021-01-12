@@ -1,0 +1,84 @@
+{layout '../@layoutAdmin.latte'}
+
+{define title}{$name}{/define}
+
+{define content}
+
+<h1 class="mt-1 px-2 ">{$name} - statistika</h1>
+
+<div class="px-2 mb-3" >
+	<small>{$desc}</small>
+</div>
+
+<div class="px-2 mb-3" >
+
+	<h3>Detailní data</h3>	
+
+	<b>Statistika</b>: 
+
+	{if ($measureStats->count>0) }
+		Je zde 
+		<b>{$measureStats->count |number:0:',':' '}</b> záznamů od 
+		<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$measureStats->min_time |date:'Y-m-d'}&lenDays={$lenDays}&altYear={$altYear}"
+		>{$measureStats->min_time |date:'d.m.Y'}</a> 
+		do 
+		<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$measureStats->max_time |date:'Y-m-d'}&lenDays={$lenDays}&altYear={$altYear}"
+		>{$measureStats->max_time |date:'d.m.Y'}</a>.
+	{else}
+		Nejsou dostupná žádná detailní data.
+	{/if}
+
+	<p>
+	<i><small>"Detailní data" jsou primární záznamy ze zařízení. Jsou uloženy tak, jak přišly ze zařízení. Protože jich může být příliš mnoho, 
+	nedrží se všechny za celou historii - udělají se z nich sumární záznamy (pro každou hodinu minimum a maximum včetně času, kdy byly změřeny)
+	a detailní data starší než nastavený čas jsou smazána. Posledních několik měsíců je tak pokryto detailními daty, starší období jen sumárními.</small></i>
+
+</div>
+<div class="px-2 mb-3" >
+
+	<h3>Sumární data</h3>	
+
+	<b>Statistika:</b>
+	{if ($sumdataStats->min_time?) }
+		Je zde
+		<b>{$sumdataCount['hour'] |number:0:',':' '}</b> hodinových a 
+		<b>{$sumdataCount['day'] |number:0:',':' ' }</b> denních záznamů 
+		od
+		<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$sumdataStats->min_time |date:'Y-m-d'}&lenDays={$lenDays}&altYear={$altYear}"
+		>{$sumdataStats->min_time |date:'d.m.Y'}</a> 
+		do 
+		<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$sumdataStats->max_time |date:'Y-m-d'}&lenDays={$lenDays}&altYear={$altYear}"
+		>{$sumdataStats->max_time |date:'d.m.Y'}</a>.
+	{else}
+		{if ($sensor['device_class']==2) }
+			Pro toto zařízení nejsou počítána sumární data.
+		{else}
+			Nejsou dostupná žádná sumární data.
+		{/if}
+	{/if}
+	<p>
+	<i><small>Ze zaznamenaných hodnot (detailních dat) se automaticky počítají sumární data.
+	Pro běžné typy hodnot (teplota, tlak,...) se z každé hodiny uloží minimální a maximální hodnota (včetně času, kdy v hodině bylo dané hodnoty dosaženo). 
+	Pro rychlejší vykreslení dlouhých grafů se dále najde i denní maximum a minimum.
+	Pro impulzní měřidla (např. plynoměr, srážky) se jako sumární data počítají součty za hodinu a za den.
+	</small></i>
+
+</div>
+
+<div class="px-2 mb-3" >
+	<a n:href="Sensor:show $sensor->id" class="btn btn-primary btn-sm" role="button">Zpět</a>
+</div>
+
+<div class="px-2 mb-2" >
+	<small>
+	Vysvětlivky a poznámky:
+	<ul>
+	{foreach $devices as $device}
+		<li><b>{$device['name']}</b> - {$device['desc']}</li>
+	{/foreach}
+	<li>Nejstarší data v databázi jsou z roku {$minYear}.</li>
+	</ul></small>
+</div>
+
+{/define}
+

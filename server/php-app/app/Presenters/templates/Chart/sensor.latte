@@ -1,0 +1,169 @@
+{layout '../@layoutAdmin.latte'}
+
+{define title}{$name}{/define}
+
+{define content}
+
+<h1 class="mt-1 px-2 ">{$name}</h1>
+
+<div class="px-2 mb-3" >
+	<small>{$desc}</small>
+</div>
+
+<div class="px-2 mb-3" >
+	
+	<a n:href="Sensor:show $sensor->id" class="btn btn-primary btn-sm" role="button">Zpět</a>
+
+	<a href="../../../../chart/sensorstat/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}"
+	class="btn btn-outline-primary btn-sm"
+	>Vypsat statistiku</a>
+
+</div>
+
+<div class="px-2 mb-2" >
+	<form action="?" method="get">
+	<table width="100%" cellspacing="0" cellpadding="3" border="0">
+		<tr>
+			<td>&nbsp;</td>
+			<td align="center">
+				Předvolby: 
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&currentday=1">Aktuální den.</a>
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&current=1">Poslední tři dny.</a>
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&currentweek=1">Poslední týden.</a>
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&currentmonth=1">Poslední měsíc.</a>
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&currentyear=1">Tento rok.</a>
+			</td>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td>
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&minus=1"
+					alt="Předešlé období"
+					title="Předešlé období"
+					><i class="fa fa-arrow-circle-left fa-2x"></i></a>
+			</td>
+			<td align="center">
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&minusYear=1"
+					>[- rok]</a>
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&minusMon=1"
+					>[- měsíc]</a>
+				Zobraz 
+				<select name="lenDays">
+					<option value="1" {if ($lenDays==1)}selected{/if}>1 den</option>
+					<option value="3" {if ($lenDays==3)}selected{/if}>3 dny</option>
+					<option value="8" {if ($lenDays==8)}selected{/if}>týden</option>
+					<option value="31" {if ($lenDays==31)}selected{/if}>měsíc</option>
+					<option value="92" {if ($lenDays==92)}selected{/if}>3 měsíce</option>
+					<option value="183" {if ($lenDays==183)}selected{/if}>půl roku</option>
+					<option value="366" {if ($lenDays==366)}selected{/if}>rok</option>
+				</select>
+				od
+				<input type="date" name="dateFrom" size=8  value="{$dateFrom}">
+				<input type="submit" name="draw" value="Ukaž!">
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&plusMon=1"
+					>[+ měsíc]</a>
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&plusYear=1"
+					>[+ rok]</a>
+			</td>
+			<td>
+				<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&plus=1"
+					alt="Další období"
+					title="Další období"
+					><i class="fa fa-arrow-circle-right fa-2x"></i></a>
+			</td>
+		</tr>
+		{if ($allowCompare)}
+			<tr>
+				<td>
+				</td>
+				<td align="center">
+					<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&altminus=1"
+						>[- rok]</a>
+					
+					Srovnávací rok: 
+					<select name="altYear">
+						<option value="" {if ($altYear=="")}selected{/if}></option>
+						{foreach $years as $year}
+							<option value="{$year}" {if ($altYear==$year)}selected{/if}>{$year}</option>
+						{/foreach}
+					</select>
+					<input type="submit" name="draw" value="Ukaž!">
+					<a href="../../../../chart/sensor/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}&altplus=1"
+						>[+ rok]</a>
+				</td>
+				<td>
+				</td>
+			</tr>
+		{/if}
+	</table>
+	</form> 
+</div>
+
+<div class="px-2 mb-2" >
+	<img 
+		width="{$chW}" height="{$chH}" border="0" 
+		src="../../../../chart/sensorchart/show/{$id}/?dateFrom={$dateFrom}&lenDays={$lenDays}&altYear={$altYear}"
+	>
+</div>
+
+<div class="px-2 mb-4" >
+	<table width="100%" cellspacing="0" cellpadding="3" border="0">
+	{foreach $items as $row}
+		<tr>
+			<td>
+				{if ($row['axis']==1)}
+					<table><tr><td width="15px" height="15px" bgcolor="{$row['color']}">
+						{if ($row['nr']==1)}
+							&nbsp;
+						{else}
+							<table><tr><td width="10px" height="10px" bgcolor="#ffffff">&nbsp;</td></tr></table>
+						{/if}
+					</td></tr></table>
+				{else}
+					&nbsp;
+				{/if}
+			</td>
+			<td  align="{if ($row['axis']==1)}left{else}right{/if}"><font color="{$row['color']}">
+				{$row['name']}. <small>Od <b>{$row['date']}. </b> [{$row['sensor_name']}; {$row['unit']}; <b>{$row['source_desc']}</b>]</small>
+			</font></td>
+			<td >
+				{if ($row['axis']==2)}
+					<table><tr><td width="15px" height="15px" bgcolor="{$row['color']}">
+						{if ($row['nr']==1)}
+							&nbsp;
+						{else}
+							<table><tr><td width="10px" height="10px" bgcolor="#ffffff">&nbsp;</td></tr></table>
+						{/if}
+					</td></tr></table>
+				{else}
+					&nbsp;
+				{/if}
+			</td>
+		</tr>
+	{/foreach}
+	</table>
+</div>
+
+<div class="px-2 mb-2" >
+	<small>
+	Vysvětlivky a poznámky:
+	<ul>
+	{foreach $devices as $device}
+		<li><b>{$device['name']}</b> - {$device['desc']}</li>
+	{/foreach}
+	{if ($isKompozit)}
+		<li><b>Kompozit</b> - Zpracovávají se data z více senzorů a použijí se ta, která jsou dostupná.</li>
+	{/if}
+	{if ($source1) }
+		<li><b>Automatická data</b> - Pro úseky delší než 90 dní se vykreslí jen maximum a minimum v každém dni. 
+		Pro úseky od 6 do 90 dní se zobrazují maxima a minima v každé hodině - na výsledných grafech to skoro není rozlišitelné proti přímým datům. 
+		Pro kratší úseky se pro ne-kompozitní data stará maximálně {$dataRetentionDays} dní použijí přímo naměřené hodnoty; pro kompozitní sérii (z více senzorů)
+		nebo data starší než limit se použijí hodinová maxima a minima.
+		</i></li>
+	{/if}
+	<li>Nejstarší data v databázi jsou z roku {$minYear}.</li>
+	</ul></small>
+</div>
+
+{/define}
+

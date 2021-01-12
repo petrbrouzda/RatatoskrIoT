@@ -1,0 +1,96 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Smazání zařízení</h1>
+</div>
+
+<div class="px-2 pb-2 text-danger">
+    Skutečně chcete smazat zařízení '{$device->name}' ({$device->desc})? Tuto akci nebude možné vrátit zpět!
+</div>
+
+{foreach $statMeasures as $stat}
+    {first}
+        <div class="px-2 pb-2">
+        K senzorům tohoto zařízení jsou zaznamenána <b>detailní data</b>. <span class="text-danger">Tato data budou smazána také!</span>
+
+        <div class="row pl-4">
+            <div class="col-6 col-md-2">
+                <b>Jméno senzoru</b>
+            </div>
+            <div class="col-6 col-md-3">
+                <b>Popis</b>
+            </div>
+            <div class="col-6 col-md-2">
+                <b>Počet záznamů</b>
+            </div>
+        </div>  
+    {/first}
+    
+    <div class="row  pl-4 {if $iterator->odd}bg-light{/if}">
+        <div class="col-6 col-md-2">
+            {$stat->name}
+        </div>
+        <div class="col-6 col-md-3">
+            {$stat->desc}
+        </div>
+        <div class="col-6 col-md-2">
+            {$stat->pocet |number:0:',':' '}
+        </div>
+    </div>
+    
+    {last}
+        </div>
+    {/last}
+{/foreach}
+
+{foreach $statSumdata as $stat}
+    {first}
+        <div class="px-2 pb-2">
+        K senzorům tohoto zařízení jsou zaznamenána <b>sumární data</b>. <span class="text-danger">Tato data budou smazána také!</span>
+
+        <div class="row pl-4">
+            <div class="col-6 col-md-2">
+                <b>Jméno senzoru</b>
+            </div>
+            <div class="col-6 col-md-3">
+                <b>Popis</b>
+            </div>
+            <div class="col-6 col-md-2">
+                <b>Počet záznamů</b>
+            </div>
+        </div>  
+    {/first}
+    
+    <div class="row  pl-4 {if $iterator->odd}bg-light{/if}">
+        <div class="col-6 col-md-2">
+            {$stat->name}
+        </div>
+        <div class="col-6 col-md-3">
+            {$stat->desc}
+        </div>
+        <div class="col-6 col-md-2">
+            {$stat->pocet |number:0:',':' '}
+        </div>
+    </div>
+    
+    {last}
+        </div>
+    {/last}
+{/foreach}
+
+<div class="px-2 pb-2">
+    {control deleteForm}
+</div>
+
+<div class="px-2 pb-2">
+    <a n:href="Device:edit $device->id" class="btn btn-outline-primary btn-sm" role="button">Zpět beze změn</a>
+</div>
+
+<div class="px-2 pb-2">
+Upozornění: mazání může trvat i minutu... 
+</div>
+
+
+{/define}

@@ -1,0 +1,104 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="robots" content="noindex, nofollow">
+        <title>{ifset title}{include title|stripHtml} | {/ifset}{$appName}</title>
+        <link href="{$path}../css/styles.css" rel="stylesheet" />
+        <link href="{$path}../css/mystyles.css" rel="stylesheet" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <button class="btn btn-link btn-sm ml-2 mr-2" id="sidebarToggle" href="#"><i class="fas fa-bars"></i></button>
+            <a class="navbar-brand" href="#">{$appName}</a>
+            <ul class="navbar-nav ml-auto mr-0 mr-md-3">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="userDropdown" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{$user->getIdentity()->prefix} <i class="fas fa-user fa-fw"></i></a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                        <div class="dropdown-item">Uživatel: <b>{$user->getIdentity()->username}</b></div>
+                        <div class="dropdown-item"><small>
+                            Role: 
+                            {foreach $user->getIdentity()->getRoles() as $role} <b>{$role}</b>{sep}, {/sep} {/foreach}
+                            </small>
+                        </div>
+                        <div class="dropdown-item"><small>Prefix: {$user->getIdentity()->prefix}</small></div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" n:href="Sign:out">Odhlásit</a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-light" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Menu</div>
+							{foreach $menu as $row}
+								<a class="nav-link pt-0 pb-1 {if ($row['id']==$menuId)}active{/if}" href="{$path}../{$row['link']}">{$row['name']}</a>
+							{/foreach}
+                            <div>&nbsp;</div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                    <div  class="container-fluid px-0 mx-0 px-md-2 px-lg-4" {if ($isChart?)} style="max-width: {$maxW}px;" {/if} >
+                        {foreach $flashes as $flash}
+					        <div class="alert flash alert-{$flash->type}">{$flash->message}</div>
+                        {/foreach}
+
+	{include content}
+
+					</div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">RatatoskrIoT</div>
+                            <div>
+                                {foreach $links as $link }
+                                    {if (!$iterator->first) }
+                                        &middot;
+                                    {/if}
+                                    {if (strlen($link['link'])>0) }
+                                        <a href="{$link['link']}">{$link['name']}</a>
+                                    {else}
+                                        {$link['name']}
+                                    {/if}
+                                {/foreach}
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
+		{block scripts}
+			<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+			<script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+			<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+			<script src="{$path}../js/scripts.js"></script>
+            <script type="text/javascript">
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip()
+            })
+            </script>
+
+            <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+            </script>
+            <script type="text/javascript">
+            try {
+            var pageTracker = _gat._getTracker("UA-289403-4");
+            pageTracker._trackPageview();
+            } catch(err) {}</script>
+
+		{/block}
+
+    </body>
+</html>

@@ -1,0 +1,27 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Konfigurace pro zařízení {$name}</h1>
+
+{control sendconfigForm}
+
+<br>
+Zapište změny konfigurace ve formě
+<br>
+<b>&nbsp;&nbsp;&nbsp;JménoPoložky=Obsah
+<br>&nbsp;&nbsp;&nbsp;JináPoložka=JinýObsah</b>
+<br>
+Jedna řádka nesmí být delší než 256 byte a celá změna nesmí přesáhnout 512 byte.
+
+</div>
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Device:show $id" class="btn btn-outline-primary btn-sm" role="button">Zpět beze změny</a>
+    </div>
+</div>
+
+
+{/define}

@@ -1,0 +1,49 @@
+{layout '../@layoutGallery.latte'}
+
+{define content}
+
+    <div class="row px-2 ">
+    <a name="dnes"></a>
+{foreach $blobs as $blob }
+
+{if $iterator->first}
+        <div class="col-12 col-sm-12 col-md-12 col-xl-8 pb-2 text-center">
+            {if ($blob['extension']=='jpg')}
+                <a href="{$blob['id']}/"><img src="{$blob['id']}/" border="0" loading="lazy"></a>
+            {else}
+                <a href="{$blob['id']}/"><b>.{$blob['extension']}</b></a>
+            {/if}
+            <br>
+            <i>{$blob['description']}</i>, {$blob['tst']}
+        </div>
+    </div>
+    <div class="row px-2">
+{else}
+    {if ($blob['date_change'])}
+    </div>
+    <div class="row px-2">
+        <div class="col-12">
+            <a name="{$blob['href']}"></a>&nbsp;
+        </div>
+        <div class="col-12 pt-5">
+            <h3>{$blob['data_time'] |date:'j. n. Y' }</h3>
+        </div>
+    </div>
+    <div class="row px-2">
+    {/if}
+
+        <div class="col-12 col-sm-6 col-md-4 col-xl-2 pb-2 text-center">
+            {if ($blob['extension']=='jpg')}
+                <a href="{$blob['id']}/"><img src="{$blob['id']}/" border="0" loading="lazy"></a>
+            {else}
+                <a href="{$blob['id']}/"><b>.{$blob['extension']}</b></a>
+            {/if}
+            <br>
+            <i>{$blob['description']}</i>, {$blob['tst']}
+        </div>
+{/if}    
+
+{/foreach}
+</div>
+
+{/define}

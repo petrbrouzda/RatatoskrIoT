@@ -1,0 +1,49 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Soubory {$device['name']}</h1>
+</div>
+
+<div class="row px-2 pt-0 pb-3">
+    <div class="col-12">
+        <a n:href="Device:show $device['id']" class="btn btn-primary btn-sm" role="button">Zpět na zařízení</a>
+        <a n:href="Device:blobs $id" class="btn btn-outline-primary btn-sm" role="button">Aktualizovat seznam</a>
+    </div>
+</div>
+
+<div class="row px-2 bg-blue">
+    <div class="col-9 col-md-2">
+        <b>Čas</b>
+    </div>
+    <div class="col-3 col-md-1">
+        <b>Velikost</b>
+    </div>
+    <div class="col-9 col-md-8">
+        <b>Popis</b>
+    </div>
+    <div class="col-3 col-md-1">
+        <b>Typ souboru</b>
+    </div>
+</div>
+
+{foreach $blobs as $blob }
+<div class="row px-2 {if $iterator->odd}bg-light{/if}">
+    <div class="col-9 col-md-2">
+        <a n:href="Device:download $device['id'], $blob['id']">{$blob['data_time'] |date:'Y-m-d H:i:s' }</a>
+    </div>
+    <div class="col-3 col-md-1">
+        {$blob['filesize'] |bytes }
+    </div>
+    <div class="col-9 col-md-8">
+        <i>{$blob['description']}</i>
+    </div>
+    <div class="col-3 col-md-1">
+        {$blob['extension']}
+    </div>
+</div>
+{/foreach}
+
+
+{/define}

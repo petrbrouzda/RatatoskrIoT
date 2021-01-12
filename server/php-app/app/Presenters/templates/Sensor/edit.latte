@@ -1,0 +1,23 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Senzor {$name}</h1>
+
+{if $device_class==1 || $device_class==2 }
+    {control sensorextForm}
+{else}
+    {control sensorForm}
+{/if}
+
+</div>
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Sensor:show $id" class="btn btn-outline-primary btn-sm" role="button">Zpět beze změny</a>
+    </div>
+</div>
+
+
+{/define}

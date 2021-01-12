@@ -1,0 +1,2 @@
+*/1 * * * * /opt/ra/cron/run.sh >/opt/ra/cron/cron.log 2>&1
+20 3 * * * /opt/ra/cron/runDaily.sh >/opt/ra/cron/cronDaily.log 2>&1

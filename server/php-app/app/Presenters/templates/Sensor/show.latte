@@ -1,0 +1,114 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Senzor {$name}</h1>
+</div>
+
+<div class="row px-2 pt-3">
+    <div class="col-12">
+        <h3>Informace</h3>
+    </div>
+</div>
+<div class="row px-2  bg-light">
+    <div class="col-12 col-md-4">Název:</div>
+    <div class="col-12 col-md-8"><b>{$sensor['name']}</b></div>
+</div>
+<div class="row px-2">
+    <div class="col-12 col-md-4">Popis:</div>
+    <div class="col-12 col-md-8"><i>{$sensor['desc']}</i></div>
+</div>
+
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-4">Jednotka:</div>
+    <div class="col-12 col-md-8">{$sensor['unit']}</div>
+</div>
+
+
+<div class="row px-2">
+    <div class="col-12 col-md-4">Typ měřených dat:</div>
+    <div class="col-12 col-md-8"><b>{$sensor['device_class']}</b> - 
+    
+        {if ($sensor['device_class']==1) }
+            Kontinuální se sumarizací.
+            <small>
+            <br>Předpokládá se, že se měří spojitá veličina jako je například teplota, tlak, nebo výška hladiny 
+            - tj. že naměřená hodnota v každém okamžiku je to, co se má zobrazovat.
+            <br>Z naměřených hodnot se <b>počítají sumární data</b> - najdou se hodinová a denní maxima a minima.
+            <br>Pro rychlé vykreslení delších grafů je možné používat sumární data.
+            <br>Detailní naměřená data se po určité době mažou, sumární data zůstávají.
+            </small>
+        {elseif ($sensor['device_class']==2) }
+            Kontinuální bez sumarizace.
+            <small>
+            <br>Předpokládá se, že se měří spojitá veličina jako je například teplota, tlak, nebo výška hladiny. 
+            <br>Nepočítají se sumární data.
+            </small>
+        {elseif ($sensor['device_class']==3) }
+            Impulzní data se sumarizací.
+            <small>
+            <br>Měří se impulzní veličina - tj. počet jednotek načtených z plynoměru, počet přeskočení srážkoměru atd.
+            <br>Pro zobrazení se naměřené hodnoty mohou vynásobit přepočtovým koeficientem.
+            <br>Z naměřených hodnot se <b>počítají sumární data</b> - součty po hodinách a po dnech.
+            <br>Grafy se vykreslují z hodinových nebo denních součtů.
+            </small>
+        {/if}
+    </div>
+</div>
+
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-4">Zařízení:</div>
+    <div class="col-12 col-md-8"><b>
+        <a n:href="Device:show $sensor['device_id']">{$sensor['dev_name']}</a></b> - <i>{$sensor['dev_desc']}</i></div>
+</div>
+<div class="row px-2">
+    <div class="col-12 col-md-4">Očekávaný maximální interval dat ze zařízení:</div>
+    <div class="col-12 col-md-8">{$sensor['msg_rate']} sec</div>
+</div>
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-4">Očekávaný maximální interval mezi hodnotami pro vykreslení grafu:</div>
+    <div class="col-12 col-md-8">{$sensor['display_nodata_interval']} sec</div>
+</div>
+<div class="row px-2">
+    <div class="col-12 col-md-4">Násobení hodnoty:</div>
+    <div class="col-12 col-md-8">
+        {if ($sensor['preprocess_data']==1)}
+            x {$sensor['preprocess_factor']}
+        {else}
+            -
+        {/if}
+    </div>
+</div>
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-4">Upozornění na maximum:</div>
+    <div class="col-12 col-md-8">
+        {if ($sensor['warn_max']==1)}
+            Pro &gt;=<b>{$sensor['warn_max_val']}</b> {$sensor['unit']} zasíláme '<b>{$sensor['warn_max_text']}</b>'
+        {else}
+            -
+        {/if}
+    </div>
+</div>
+<div class="row px-2">
+    <div class="col-12 col-md-4">Upozornění na minimum:</div>
+    <div class="col-12 col-md-8">
+        {if ($sensor['warn_min']==1)}
+            Pro &lt;=<b>{$sensor['warn_min_val']}</b> {$sensor['unit']} zasíláme '<b>{$sensor['warn_min_text']}</b>'
+        {else}
+            -
+        {/if}
+    </div>
+</div>
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Device:show $sensor['device_id']" class="btn btn-primary btn-sm" role="button">Zpět k zařízení</a>
+        <a n:href="Inventory:home" class="btn btn-outline-primary btn-sm" role="button">Seznam zařízení</a>
+        <a href="../../chart/sensor/show/{$sensor['id']}/?current=1" class="btn btn-outline-primary btn-sm" role="button">Graf hodnot</a>
+        <a n:href="Chart:sensorstat $sensor['id']" class="btn btn-outline-primary btn-sm" >Statistika dat</a>
+        <a n:href="Sensor:edit $sensor['id']" class="btn btn-outline-primary btn-sm" role="button">Upravit senzor</a>
+    </div>
+</div>
+
+{/define}

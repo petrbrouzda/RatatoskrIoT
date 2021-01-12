@@ -1,0 +1,131 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Můj účet</h1>
+</div>
+
+{if ($userData['prev_login_time'])}
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-3">Předešlé přihlášení:</div>
+    <div class="col-12 col-md-9">
+                <b>{$userData['prev_login_time']}</b>
+                z IP adresy 
+                {if ($prev_login_name)}
+                    {$userData['prev_login_ip']} (<b>{$prev_login_name}</b>)
+                {else}
+                    <b>{$userData['prev_login_ip']}</b>
+                {/if}
+                <br><small>{$userData['prev_login_browser']}</small></div>
+</div>
+{/if}
+
+{if ($userData['last_error_time']) }
+<div class="row px-2">
+    <div class="col-12 col-md-3">Poslední neúspěšné přihlášení:</div>
+    <div class="col-12 col-md-9 text-danger">
+                <b>{$userData['last_error_time']}</b>
+                z IP adresy 
+                {if ($last_error_name)}
+                    {$userData['last_error_ip']} (<b>{$last_error_name}</b>)
+                {else}
+                    <b>{$userData['last_error_ip']} </b>
+                {/if}
+                <br><small>{$userData['last_error_browser']}</small></div>
+</div>
+{/if}
+
+
+<div class="row px-2 pt-4 pb-2">
+    <div class="col-12">
+        <h3>Vlastnosti účtu</h3>
+    </div>
+</div>
+
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-3">Přihlašovací jméno:</div>
+    <div class="col-12 col-md-9"><b>{$userData['username']}</b>
+        <br><small>Toto jméno zadáváte při přihlašování.</small>
+    </div>
+</div>
+
+<div class="row px-2">
+    <div class="col-12 col-md-3">E-mail adresa:</div>
+    <div class="col-12 col-md-9"><b>{$userData['email']}</b>
+        <br><small>Na tuto adresu budou zasílány e-mail notifikace.</small>
+    </div>
+</div>
+
+<div class="row px-2  bg-light">
+    <div class="col-12 col-md-3">Token pro přístup k monitoringu:</div>
+    <div class="col-12 col-md-9"><b>{$userData['monitoring_token']}</b></div>
+</div>    
+
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Inventory:edit" class="btn btn-outline-primary btn-sm" role="button">Změnit nastavení</a>
+        <a n:href="Inventory:password" class="btn btn-outline-primary btn-sm" role="button">Změnit heslo</a>
+    </div>
+</div>
+
+
+{if ($userData['monitoring_token'])}
+<div class="px-2 pb-2 pt-4">
+    <h3>Monitoring</h3>
+    Data monitoringu jsou dostupná zde: <b><a href="{$monitoringUrl}">{$monitoringUrl}</a></b>
+    <br><small>Každý, kdo zná toto URL, si může data zobrazit. Přístup již dále <b>není chráněn heslen</b>.</small>
+</div>
+{/if}
+
+
+<div class="row px-2 pt-4 pb-2">
+    <div class="col-12">
+        <h3>Retence dat</h3>
+        Uložená data starší než určený čas budou smazána.
+    </div>
+</div>
+
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-3">Detailní data (zdrojové hodnoty):</div>
+    <div class="col-12 col-md-9">
+        {if ($userData['measures_retention'])!=0 }
+            <b>{$userData['measures_retention']} dní</b>
+        {else}
+            neomezeno
+        {/if}
+    </div>
+</div>
+
+<div class="row px-2">
+    <div class="col-12 col-md-3">Sumární data (hodinové průměry, maxima, minima):</div>
+    <div class="col-12 col-md-9">
+        {if ($userData['sumdata_retention'])!=0 }
+            <b>{$userData['sumdata_retention']} dní</b>
+        {else}
+            neomezeno
+        {/if}
+    </div>
+</div>
+
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-3">Soubory:</div>
+    <div class="col-12 col-md-9">
+        {if ($userData['blob_retention'])!=0 }
+            <b>{$userData['blob_retention']} dní</b>
+        {else}
+            neomezeno
+        {/if}
+    </div>
+</div>
+
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Inventory:home" class="btn btn-outline-primary btn-sm" role="button">Zařízení</a>
+        <a n:href="View:views" class="btn btn-outline-primary btn-sm" role="button">Grafy</a>
+    </div>
+</div>
+
+{/define}

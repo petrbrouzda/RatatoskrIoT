@@ -1,0 +1,9 @@
+{layout '../@layoutEmpty.latte'}
+
+{define content}
+{if ! $ip_not_allowed }
+Processed: {$batches} batches and {$records} records in {$time} sec.
+{else}
+IP address not allowed.
+{/if}
+{/define}

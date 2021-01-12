@@ -1,0 +1,94 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="robots" content="noindex, nofollow">
+        <title>{ifset title}{include title|stripHtml} | {/ifset}{$appName}</title>
+        <link href="../../../css/styles.css" rel="stylesheet" />
+        <link href="../../../css/mystyles.css" rel="stylesheet" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
+        <META HTTP-EQUIV="Refresh" CONTENT="300; URL=?filterBlack={$filterBlack}"> 
+    </head>
+    <body class="sb-nav-fixed">
+        <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+            <button class="btn btn-link btn-sm ml-2 mr-2" id="sidebarToggle" href="#"><i class="fas fa-bars"></i></button>
+            <a class="navbar-brand" href="#">{$appName}</a>
+        </nav>
+        <div id="layoutSidenav">
+            <div id="layoutSidenav_nav">
+                <nav class="sb-sidenav accordion sb-sidenav-light" id="sidenavAccordion">
+                    <div class="sb-sidenav-menu">
+                        <div class="nav">
+                            <div class="sb-sidenav-menu-heading">Nabídka</div>
+                                <a class="nav-link pt-0 pb-1 active" href="?filterBlack={$filterBlack}"><i class="fas fa-angle-right"></i>&nbsp; Aktualizovat galerii</a>
+                                <div class="pl-3 pt-0 pb-1">Načteno v {$loadTime |date:'H:i:s' }</div>
+                                <div class="pl-3 pt-0 pb-1">Obnovíme v {$refreshTime |date:'H:i:s' }</div>
+                                <hr>
+                                {if ($filterBlack==1)}
+                                    <div class="pl-3 pt-0 pb-1">Filtrace: <b>skrýt tmu</b> ({$countFiltered})</div>
+                                    <a class="nav-link pt-0 pb-1" href="?filterBlack=0"><i class="fas fa-angle-right"></i>&nbsp; Zobrazit vše ({$countAll})</a>
+                                {else}
+                                    <div class="pl-3 pt-0 pb-1">Zobrazeno vše ({$countAll})</div>
+                                    <a class="nav-link pt-0 pb-1" href="?filterBlack=1"><i class="fas fa-angle-right"></i>&nbsp; Skrýt tmu</a>
+                                {/if}
+                                <hr>
+                                {foreach $dates as $date}
+                                    <a class="nav-link pt-0 pb-1" href="#{$date}"><i class="fas fa-angle-right"></i>&nbsp; {$date}</a>
+                                {/foreach}
+                            <div>&nbsp;</div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            <div id="layoutSidenav_content">
+                <main>
+                    <div  class="container-fluid px-0 mx-0 px-md-2 px-lg-4" style="max-width: {$maxW}px;">
+					    <div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+
+	{include content}
+
+					</div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">RatatoskrIoT</div>
+                            <div>
+                                {foreach $links as $link }
+                                    {if (!$iterator->first) }
+                                        &middot;
+                                    {/if}
+                                    {if (strlen($link['link'])>0) }
+                                        <a href="{$link['link']}">{$link['name']}</a>
+                                    {else}
+                                        {$link['name']}
+                                    {/if}
+                                {/foreach}
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
+		{block scripts}
+			<script src="https://nette.github.io/resources/js/3/netteForms.min.js"></script>
+			<script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+			<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+			<script src="../../../js/scripts.js"></script>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-289403-4");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+		{/block}
+
+    </body>
+</html>
