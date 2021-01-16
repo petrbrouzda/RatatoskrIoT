@@ -147,14 +147,14 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
             if( ! $sensor['warn_noaction_fired'] ) { // nemame to zapsane
                 $sensor['warn_noaction_fired'] = new DateTime();
                 $zapisWarningy = 1;
-                $this->datasource->insertNotification( $sensor['device_id'], $sensor['id'], 4, "{$sensor['last_data_time']}", 0 );
+                $this->datasource->insertNotification( $sensor['device_id'], $sensor['id'], 4, "{$sensor['last_data_time']}", 0, new DateTime() );
                 Logger::log( self::NAME,  Logger::INFO,  "Notification NO_DATA: {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] " );
             }
         } else { // zpravy chodi
             if( $sensor['warn_noaction_fired'] ) { // ale mame znacku, ze nechodi => smazat
                 $sensor['warn_noaction_fired'] = null;
                 $zapisWarningy = 1;
-                $this->datasource->insertNotification( $sensor['device_id'], $sensor['id'], -4, "{$sensor['last_data_time']}", 0 );
+                $this->datasource->insertNotification( $sensor['device_id'], $sensor['id'], -4, "{$sensor['last_data_time']}", 0 , new DateTime() );
                 Logger::log( self::NAME,  Logger::INFO,  "Notification NO_DATA cleared {$sensor['id']} [{$sensor['dev_name']}:{$sensor['name']}] " );
             }
         }
@@ -320,7 +320,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
             }
         }
 
-        // spocten min,max -> udelame si stred
+        // spocten min,max -> udelame si stred (to se tyka jen hodinovych zaznamu, u dennich se pocita jinak!)
         if( $sensor->device_class == 1 ) {
             $avg = ($min+$max)/2;
         }

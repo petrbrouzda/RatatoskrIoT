@@ -848,6 +848,9 @@ final class ChartPresenter extends BasePresenter
 
     /**
      * Zpracuje prumery; vyplni objekt Avg a pole avgSeries
+     * 
+     * mode = 0 ... denni prumer
+     * mode = 1 ... denni minimum
      */
     private function prepareAvgData( $sensors, $yearFrom, $years, $mode )
     {
@@ -917,7 +920,7 @@ final class ChartPresenter extends BasePresenter
         // modra od nejsvetlejsi
         $this->colorsMinus = $this->generateColors( ['#c1eeff', '#aad8ec', '#93c3d8',  '#7daec6',  '#6799b3', '#5185a1',  '#3b7290',  '#235e7e',  '#004c6d' ] );
 
-        $this->colorZero = $this->image->colorAllocate( 128,128,128 );;
+        $this->colorZero = $this->image->colorAllocate( 220,220,220 );;
         $this->colorNoData = $this->image->colorAllocate( 255,255,255 );;
     }
 
@@ -958,7 +961,7 @@ final class ChartPresenter extends BasePresenter
             Image::rgb(242, 242, 242) );
 
         // vyplni $this->avg a $this->avgSeries
-        $this->prepareAvgData( $view->items[0]->sensors, $yearFrom, $years );
+        $this->prepareAvgData( $view->items[0]->sensors, $yearFrom, $years, 0 );
 
         /*D
         for( $m = 1; $m<=12; $m++ ) {
@@ -1086,6 +1089,8 @@ final class ChartPresenter extends BasePresenter
         $this->prepareAvgData( $view->items[0]->sensors, $yearFrom, $years, $mode );
 
         $this->generateHeatmapColors();
+        $this->colorsPlus[0] = $this->colorNoData;
+        $this->colorsMinus[0] = $this->colorNoData;
 
         $col = 0;
         for( $row = 0; $row<$years; $row++ ) {
@@ -1140,13 +1145,13 @@ final class ChartPresenter extends BasePresenter
                     } else if( $val-$avgVal >= 0 ) {
                         $idx = intval( $val-$avgVal );
                         if( $idx>8 ) $idx=8;
-                        if( $idx>1 ) $ctPlus++;
+                        if( $idx>0 ) $ctPlus++;
                         if( $idx>4 ) $ctPlusMoc++;
                         $color = $this->colorsPlus[ $idx ];
                     } else if( $val-$avgVal < 0 ) {
                         $idx = intval( $avgVal-$val );
                         if( $idx>8 ) $idx=8;
-                        if( $idx>1 ) $ctMinus++;
+                        if( $idx>0 ) $ctMinus++;
                         if( $idx>4 ) $ctMinusMoc++;
                         $color = $this->colorsMinus[ $idx ];
                     }
