@@ -35,6 +35,8 @@ final class ChartPresenter extends BasePresenter
     private $appName;
     private $minYear;
     private $links;
+
+    private $dbRows;
     
     public function __construct(\App\Services\ChartDataSource $datasource, 
                                 $fontRegular, $fontBold, $dataRetentionDays, $appName, $minYear, $links )
@@ -450,7 +452,7 @@ final class ChartPresenter extends BasePresenter
     /**
      * Vykresluje graf zadany v \App\Model\Chart
      */
-    private function drawChart( $intervalLenDays )
+    private function drawChart( $src, $intervalLenDays )
     {
         // spocteme rozsah jednotlivych os
         $this->axisY1 = ChartAxisY::prepareAxisY( $this->chart->series1, $this->chart->sizeY, $this->chart->marginYT );
@@ -491,6 +493,9 @@ final class ChartPresenter extends BasePresenter
             $serie = $this->chart->series1[$i];
             $this->drawSeries( $this->axisY1, $serie, $poradi++ );
         }
+
+        $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
+        Logger::log( 'webapp', Logger::DEBUG ,  "Chart: {$src}, {$intervalLenDays} d, t={$time} ms" ); 
         
         $this->image->send(Image::PNG);
 
@@ -622,7 +627,7 @@ final class ChartPresenter extends BasePresenter
         $response->setHeader('Cache-Control', 'no-cache');
         $response->setExpiration('1 min'); 
 
-        $this->drawChart(  $lenDays );
+        $this->drawChart( "ch={$id}", $lenDays );
     }
 
 
@@ -801,8 +806,11 @@ final class ChartPresenter extends BasePresenter
 
         $response = $this->getHttpResponse();
         $response->setHeader('Cache-Control', 'no-cache');
-        $response->setExpiration('1 min');         
-
+        $response->setExpiration('1 min');   
+        
+        $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
+        Logger::log( 'webapp', Logger::DEBUG ,  "Coverage: ch={$id}, t={$time} ms" ); 
+        
         $this->image->send(Image::PNG);
     }    
 
@@ -865,6 +873,7 @@ final class ChartPresenter extends BasePresenter
 
         foreach ($result as $row) {
             //Debugger::log( $row );
+            $this->dbRows++;
 
             if( $prevDate === NULL ) {
                 // prvni radek na zacatku
@@ -1033,8 +1042,11 @@ final class ChartPresenter extends BasePresenter
 
         $response = $this->getHttpResponse();
         $response->setHeader('Cache-Control', 'no-cache');
-        $response->setExpiration('1 min');         
-
+        $response->setExpiration('1 min');   
+        
+        $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
+        Logger::log( 'webapp', Logger::DEBUG ,  "Avgtemp: ch={$id} rows={$this->dbRows} t={$time} ms" ); 
+        
         $this->image->send(Image::PNG);
     } 
 
@@ -1181,8 +1193,11 @@ final class ChartPresenter extends BasePresenter
 
         $response = $this->getHttpResponse();
         $response->setHeader('Cache-Control', 'no-cache');
-        $response->setExpiration('1 min');         
-
+        $response->setExpiration('1 min');  
+        
+        $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
+        Logger::log( 'webapp', Logger::DEBUG ,  "Avgyears: ch={$id} rows={$this->dbRows} t={$time} ms" ); 
+        
         $this->image->send(Image::PNG);
     } 
 
@@ -1219,7 +1234,7 @@ final class ChartPresenter extends BasePresenter
         $response->setHeader('Cache-Control', 'no-cache');
         $response->setExpiration('1 min'); 
 
-        $this->drawChart(  $lenDays );
+        $this->drawChart( "s={$id}", $lenDays );
     }
 
 

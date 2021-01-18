@@ -1,5 +1,9 @@
 # RatatoskrIoT: aplikace pro mikrokontroléry ESP8266 a ESP32
 
+Informace, motivace a použití jsou popsány zde: https://pebrou.wordpress.com/2021/01/07/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-1-n/
+
+Serverová aplikace je v adresáři **/server**.
+
 
 ## **v43a-demo-power_always_on**
 
