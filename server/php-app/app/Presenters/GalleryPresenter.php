@@ -31,11 +31,11 @@ final class GalleryPresenter extends BasePresenter
     public $filterBlack = 1;
     
     public function __construct(\App\Services\InventoryDataSource $datasource, 
-                                $appName, $links )
+                                \App\Services\Config $config )
     {
         $this->datasource = $datasource;
-        $this->appName = $appName;
-        $this->links = $links;    
+        $this->links = $config->links;
+        $this->appName = $config->appName;
     }
 
 
@@ -47,11 +47,11 @@ final class GalleryPresenter extends BasePresenter
         $dateT = $date->format('Y-m-d');
 
         if( strcmp( $today->format('Y-m-d') , $dateT)==0 ) {
-            return "dnes";
+            return "dnes " . $date->format($format);
         }
 
         if( strcmp( $today->modifyClone('-1 day')->format('Y-m-d') , $dateT)==0 ) {
-            return "včera";
+            return "včera " . $date->format($format);
         }
         
         return $this->dny[$date->format('N')] . ' ' . $date->format($format);
@@ -118,7 +118,7 @@ final class GalleryPresenter extends BasePresenter
         
         $this->template->device = $device;
         $this->template->loadTime = time();
-        $this->template->refreshTime = $this->template->loadTime + 300;
+        $this->template->refreshTime = $this->template->loadTime + 600;
 
         $response = $this->getHttpResponse();
         $response->setHeader('Pragma', 'public' );
@@ -166,12 +166,16 @@ final class GalleryPresenter extends BasePresenter
         }
 
         $file = __DIR__ . "/../../data/" . $blob['filename'];
+        if( !file_exists ( $file )) {
+            $this->template->info = "Soubor uz neexistuje";
+            return;
+        }
         $rsp = new FileResponse($file, $fileName, $contentType, FALSE );
 
         $response->setHeader('Pragma', null);
         $response->setHeader('Cache-Control', 'public');
         $response->setHeader('ETag', $etag );
-        $response->setExpiration('1 day'); 
+        $response->setExpiration('10 day'); 
 
 		$this->sendResponse($rsp);
     }

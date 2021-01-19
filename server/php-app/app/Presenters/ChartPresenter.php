@@ -31,23 +31,18 @@ final class ChartPresenter extends BasePresenter
     // hodnoty z konfigurace
     private $fontName;
     private $fontNameBold;
-    private $dataRetentionDays;
-    private $appName;
-    private $minYear;
-    private $links;
+
+    private $config;
 
     private $dbRows;
     
     public function __construct(\App\Services\ChartDataSource $datasource, 
-                                $fontRegular, $fontBold, $dataRetentionDays, $appName, $minYear, $links )
+                                \App\Services\Config $config )
     {
         $this->datasource = $datasource;
-        $this->fontName  = __DIR__ . "/../../www/font/" . $fontRegular;
-        $this->fontNameBold = __DIR__ . "/../../www/font/" . $fontBold;
-        $this->dataRetentionDays = $dataRetentionDays;
-        $this->appName = $appName;
-        $this->minYear = $minYear;
-        $this->links = $links;
+        $this->fontName  = __DIR__ . "/../../www/font/" . $config->fontRegular;
+        $this->fontNameBold = __DIR__ . "/../../www/font/" . $config->fontBold;
+        $this->config = $config;
     }
 
     // duplicita s BaseAdminPresenter->populateTemplate !
@@ -520,7 +515,7 @@ final class ChartPresenter extends BasePresenter
             $dateAge = intval( (new DateTime('now'))->diff($startDateTime)->format('%a') );
             // Debugger::log( "age {$dateAge} for {$startDateTime}" );
 
-            if( ($lenDays <= 5) && ($dateAge < $this->dataRetentionDays) && sizeof($item->sensors)==1 ) {
+            if( ($lenDays <= 5) && ($dateAge < $this->config->dataRetentionDays) && sizeof($item->sensors)==1 ) {
                 $dataSeries = $this->datasource->getSensorData_temperature_detail( $item->sensors[0], $startDateTime, $lenDays );    
             } else if($lenDays <= 90 ) {
                 $dataSeries = $this->datasource->getSensorData_temperature_summary( $item->sensors, $startDateTime, $lenDays );    
@@ -1291,7 +1286,7 @@ final class ChartPresenter extends BasePresenter
                         $plusYear, $minusYear,
                         $currentday,
 
-                        $this->minYear);
+                        $this->config->minYear);
 
         $view = $this->datasource->getView( $id, $token );
         $params->allowCompare(  $view->allowCompare );
@@ -1331,8 +1326,8 @@ final class ChartPresenter extends BasePresenter
         $this->template->altYear = $params->altYear;
         $this->template->appName = $view->appName;
         $this->template->menu = $this->datasource->readViews( $token );
-        $this->template->dataRetentionDays = $this->dataRetentionDays;
-        $this->template->links = $this->links;
+        $this->template->dataRetentionDays = $this->config->dataRetentionDays;
+        $this->template->links = $this->config->links;
 
         $chart = new Chart( NULL );
         $this->template->chW = $chart->width();
@@ -1351,7 +1346,7 @@ final class ChartPresenter extends BasePresenter
         $this->template->items = $outView;
         $this->template->devices = $this->devices;
         $this->template->years = $params->getAltYearsList();
-        $this->template->minYear = $this->minYear;
+        $this->template->minYear = $this->config->minYear;
 
     }
 
@@ -1421,7 +1416,7 @@ final class ChartPresenter extends BasePresenter
                         $plusYear, $minusYear,
                         $currentday,
 
-                        $this->minYear);
+                        $this->config->minYear);
 
         $params->allowCompare( TRUE );
         $this->template->allowCompare = TRUE;
@@ -1429,10 +1424,10 @@ final class ChartPresenter extends BasePresenter
         $this->template->dateFrom = $params->dateTimeFrom->format('Y-m-d');
         $this->template->lenDays = $params->lenDays;
         $this->template->altYear = $params->altYear;
-        $this->template->appName = $this->appName;
+        $this->template->appName = $this->config->appName;
 
-        $this->template->dataRetentionDays = $this->dataRetentionDays;
-        $this->template->links = $this->links;
+        $this->template->dataRetentionDays = $this->config->dataRetentionDays;
+        $this->template->links = $this->config->links;
 
         $chart = new Chart( NULL );
         $this->template->chW = $chart->width();
@@ -1482,7 +1477,7 @@ final class ChartPresenter extends BasePresenter
         $this->template->items = $outView;
         $this->template->devices = $this->devices;
         $this->template->years = $params->getAltYearsList();
-        $this->template->minYear = $this->minYear;
+        $this->template->minYear = $this->config->minYear;
 
         $this->template->name = $vi['sensor_name'];
         $this->template->desc = $vi['name'];
@@ -1520,7 +1515,7 @@ final class ChartPresenter extends BasePresenter
                         $plusYear, $minusYear,
                         $currentday,
 
-                        $this->minYear);
+                        $this->config->minYear);
 
         $params->allowCompare( TRUE );
         $this->template->allowCompare = TRUE;
@@ -1528,7 +1523,7 @@ final class ChartPresenter extends BasePresenter
         $this->template->dateFrom = $params->dateTimeFrom->format('Y-m-d');
         $this->template->lenDays = $params->lenDays;
         $this->template->altYear = $params->altYear;
-        $this->template->appName = $this->appName;
+        $this->template->appName = $this->config->appName;
         
         $chart = new Chart( NULL );
         $this->template->chW = $chart->width();
@@ -1536,8 +1531,8 @@ final class ChartPresenter extends BasePresenter
         // sirka sloupce pro vykresleni - obrazek + mala rezerva
         $this->template->maxW = $chart->width() + 85;
 
-        $this->template->dataRetentionDays = $this->dataRetentionDays;
-        $this->template->links = $this->links;
+        $this->template->dataRetentionDays = $this->config->dataRetentionDays;
+        $this->template->links = $this->config->links;
 
         $sensor = $this->datasource->getSensor( $id );
         $this->template->sensor = $sensor;
@@ -1567,7 +1562,7 @@ final class ChartPresenter extends BasePresenter
         $this->template->items = $outView;
         $this->template->devices = $this->devices;
         $this->template->years = $params->getAltYearsList();
-        $this->template->minYear = $this->minYear;
+        $this->template->minYear = $this->config->minYear;
 
         $this->template->name = $vi['sensor_name'];
         $this->template->desc = $vi['name'];

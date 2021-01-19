@@ -276,6 +276,9 @@ class CrontaskDataSource
     }
 
 
+    
+
+
     /**
      *  id, username, measures_retention, sumdata_retention, blob_retention
      */
@@ -364,6 +367,35 @@ class CrontaskDataSource
 
         return $result->getRowCount();
     }
+
+
+    public function getExportData()
+    {
+        return $this->database->fetchAll(  '
+            select m.id, m.sensor_id, m.data_time, m.server_time, m.out_value as value, 
+            s.device_id as device_id, s.name as sensor_name,
+            d.name as device_name, d.user_id
+            
+            from measures m
+            
+            left outer join sensors s 
+            on m.sensor_id = s.id
+            
+            left outer join devices d
+            on s.device_id = d.id
+            
+            where m.status=1
+            order by m.id asc
+            limit 200
+        ' );
+    }
+
+    public function rowExported( $id )
+    {
+        $this->database->query('UPDATE measures SET status = 2
+            WHERE id = ?', $id);
+    }
+
 }
 
 

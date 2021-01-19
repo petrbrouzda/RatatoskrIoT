@@ -19,15 +19,8 @@ services:
 	- App\Services\RaDataSource
 	- App\Services\ChartDataSource
 	- App\Services\MsgProcessor
-	- App\Services\Config( %cronAllowed%, %masterPassword%, %links%, %title% )
+	- App\Services\Config( %cronAllowed%, %masterPassword%, %links%, %title%, %font%, %fontBold%, %dataRetentionDays%,  %minYear%, )
 	- App\Services\InventoryDataSource
-	- App\Presenters\ChartPresenter(..., %font%, %fontBold%, %dataRetentionDays%, %title%, %minYear%, %links% )
-	- App\Presenters\GalleryPresenter(..., %title%, %links% )
-	- App\Presenters\InventoryPresenter(..., %links%, %title% )
-	- App\Presenters\ViewPresenter(..., %title%, %links% )
-	- App\Presenters\VitemPresenter(..., %title%, %links% )
-	- App\Presenters\DevicePresenter
-	- App\Presenters\SensorPresenter(..., %title%, %links% )
 	security.passwords: Nette\Security\Passwords(::PASSWORD_BCRYPT, [cost: 11])		# zde se nastavuji pozadovane parametry hesla https://doc.nette.org/cs/3.0/passwords
 	router: App\Router\RouterFactory::createRouter
 	authenticator: App\Services\RaAuthenticator

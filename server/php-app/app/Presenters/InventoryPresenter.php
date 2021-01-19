@@ -31,12 +31,11 @@ final class InventoryPresenter extends BaseAdminPresenter
     private $passwords;
 
     public function __construct( InventoryDataSource $datasource,
-                                $links=NULL, 
-                                $appName=NULL )
+                                \App\Services\Config $config )
     {
         $this->datasource = $datasource;
-        $this->appName = $appName;
-        $this->links = $links;
+        $this->links = $config->links;
+        $this->appName = $config->appName;
     }
 
     public function injectPasswords( Nette\Security\Passwords $passwords )

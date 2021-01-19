@@ -27,19 +27,32 @@ class Config
     public $appName;
 
 
+    public $fontRegular;
+    public $fontBold; 
+    public $dataRetentionDays;
+    public $minYear;
+
     private $masterPassword;
     
 	public function __construct(
             $ips,
             $masterPassword,
             $links,
-            $appName
+            $appName, 
+            $fontRegular, 
+            $fontBold, 
+            $dataRetentionDays, 
+            $minYear
             )
 	{
         $this->cronAllowedIPs = $ips;
         $this->masterPassword = $masterPassword;
         $this->links = $links;
         $this->appName = $appName;
+        $this->fontRegular = $fontRegular;
+        $this->fontBold = $fontBold;
+        $this->dataRetentionDays = $dataRetentionDays;
+        $this->minYear = $minYear;
 	}
 
 

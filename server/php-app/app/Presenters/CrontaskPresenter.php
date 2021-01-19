@@ -51,7 +51,9 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
 
     private $config;
     
-    public function __construct(\App\Services\CrontaskDataSource $datasource, \App\Services\MailService $mailsv, \App\Services\Config $cfg )
+    public function __construct(    \App\Services\CrontaskDataSource $datasource, 
+                                    \App\Services\MailService $mailsv, 
+                                    \App\Services\Config $cfg )
     {
         $this->datasource = $datasource;
         $this->mailService = $mailsv;
@@ -730,11 +732,62 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
         $this->deleteData( $logger );
         $this->deleteLogs( $logger );
 
-        //TODO: smazat odeslane notifikace starsi nez N
-        
         $this->template->result = "OK";
         $logger->write( Logger::INFO, "Done."  );
     }
 
+    public $maxRunTimeExport = 55;
+
+    public function renderExport()
+    {
+        if( ! $this->checkIp() ) return;
+
+        $timeLimit = time() + $this->maxRunTimeExport;
+        
+        $logger = new Logger( "cron" );
+        $logger->setContext("exp");
+
+        $ct = 0;
+
+        $exporter = $this->context->getService('exportPlugin');
+
+        while( true ) {
+            $rows = $this->datasource->getExportData();
+            foreach( $rows as $row ) {
+                $rc = $exporter->exportRecord( 
+                    $row->id,		
+                    $row->data_time,
+                    $row->server_time,
+                    $row->value,	
+                    $row->sensor_id, 
+                    $row->sensor_name,	
+                    $row->device_id,
+                    $row->device_name,	
+                    $row->user_id                     
+                );
+                if( $rc == 0 ) {
+                    $this->datasource->rowExported( $row->id );
+                    $ct++;
+                } else {
+                    $logger->write( Logger::DEBUG,  "#{$row->id} time={$row->data_time} value={$row->value} sensor={$row->sensor_id}={$row->sensor_name} device={$row->device_id}={$row->device_name} user={$row->user_id}" );                    
+                    $logger->write( Logger::WARNING, "Chyba exportu #{$rc}."  );
+                    $logger->write( Logger::INFO, "Stopping, {$ct} records done."  );
+                    $this->template->result = "ERROR #{$rc}";
+                    return;
+                }
+                if( time() > $timeLimit ) {
+                    // prekrocena maximalni delka behu
+                    break;
+                }
+            }
+            if( time() > $timeLimit ) {
+                // prekrocena maximalni delka behu
+                break;
+            }
+        }
+    
+        $this->template->result = "OK";
+        $logger->write( Logger::INFO, "Done, {$ct} records."  );
+    }
 
 }

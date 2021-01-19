@@ -39,3 +39,8 @@ mail:
 	password: prihlasovaci-heslo
 	timeout: 60
 	secure: ssl
+
+services:
+	# Pokud chcete vsechny vznikle zaznamy replikovat do jineho systemu, definujte plugin, ktery to bude resit.
+	# Odkomentujte nasledujici radek a zmente tam jmeno classu. A zajistete spousteni jobu crontask/export
+	# exportPlugin: App\Plugins\DemoExportPlugin

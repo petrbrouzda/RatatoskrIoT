@@ -27,11 +27,11 @@ final class SensorPresenter extends BaseAdminPresenter
     private $datasource;
 
     public function __construct(\App\Services\InventoryDataSource $datasource, 
-                                $appName, $links )
+                                \App\Services\Config $config )
     {
         $this->datasource = $datasource;
-        $this->appName = $appName;
-        $this->links = $links;
+        $this->links = $config->links;
+        $this->appName = $config->appName;
     }
 
 
