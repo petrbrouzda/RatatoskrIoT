@@ -753,6 +753,9 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
 
         while( true ) {
             $rows = $this->datasource->getExportData();
+            if (count($rows) < 1) {
+		    break;
+	    }
             foreach( $rows as $row ) {
                 $rc = $exporter->exportRecord( 
                     $row->id,		
