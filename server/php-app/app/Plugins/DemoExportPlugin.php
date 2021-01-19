@@ -11,6 +11,7 @@ use App\Services\Logger;
 /**
  * Exportni plugin dostava k replikaci do jineho systemu kazdou prijatou hodnotu ze zarizeni se zpozdenim cca 1-2 minuty.
  * Toto je ukazka implementace - nic nedela, jen zaloguje do souboru export.<datum>.txt
+ * Informace: https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
  */
 class DemoExportPlugin implements \App\Plugins\ExportPlugin
 {
