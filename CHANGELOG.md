@@ -13,9 +13,7 @@ Server:
 MCU:
 - Na server se odesílá síla signálu a uptime při loginu.
 
-**Při aktualizaci** z 4.* na 5.x je potřeba provést:
-- změnu databáze - změnový skript [server/sql/20210212_diff_4.3_5.0.sql](server/sql/20210212_diff_4.3_5.0.sql)
-- smazat adresář vendor/ a nahradit ho aktuálním
+**Při aktualizaci** z 4.* na 5.x je potřeba provést změnu databáze - změnový skript [server/sql/20210212_diff_4.3_5.0.sql](server/sql/20210212_diff_4.3_5.0.sql)
 
 
 ----
