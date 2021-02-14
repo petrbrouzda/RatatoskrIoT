@@ -439,10 +439,12 @@ void setup() {
     rtcFlag=0xdeadface;
     lastHighPrioTime = time(NULL);
     msgPriority = 2;
+    logger->log( "prvni start po zapnuti" );
   } else {
-    if( (lastHighPrioTime - time(NULL)) > 3600 ) {
+    if( (time(NULL) - lastHighPrioTime) > 3600 ) {
       lastHighPrioTime = time(NULL);
       msgPriority = 2;
+      logger->log( "priorita 2" );
     } else {
       msgPriority = 1;
     }
