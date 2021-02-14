@@ -6,4 +6,6 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Mdanter\\Ecc\\' => array($vendorDir . '/mdanter/ecc/src'),
+    'FG\\' => array($vendorDir . '/fgrosse/phpasn1/lib'),
 );
