@@ -614,7 +614,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
      * oboji zapsane jako retezec hexitu
      * 
      * Obsah AES_encrypted_data:
-     *      <CRC32 z desifrovaneho payloady><delka dat 1 byte><data><random padding>
+     *      <CRC32 z desifrovaneho payloady><delka dat 2 byte><data><random padding>
      *      
      * Result:
      *      200 - OK
