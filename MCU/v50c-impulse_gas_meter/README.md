@@ -1,6 +1,6 @@
 # RatatoskrIoT: aplikace pro mikrokontroléry ESP8266 a ESP32
 
-## **v43c-impulse_gas_meter**
+## **v50c-impulse_gas_meter**
 
 Základní ukázka aplikace načítající **impulzní vstup** (tedy ne kontinuální, spojitou veličinu, ale počet impulzů). Procesor běží nepřetržitě (neuspává se).
 

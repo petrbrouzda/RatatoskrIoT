@@ -10,3 +10,26 @@ V adresáři [/MCU](/MCU) jsou ukázkové aplikace pro ESP32 a ESP8266.
 
 V souboru [/CHANGELOG.md](/CHANGELOG.md) najdete informace o změnách.
 
+
+---
+
+
+# Knihovny a kód třetích stran
+
+Aplikace obsahuje následující kód třetích stran ve formě zdrojových kódů distribuovaných přímo s aplikací (resp. stahovaných přes Composer).
+
+### Nette Framework
+- zdroj: https://nette.org/cs/
+- licence: New BSD License 
+- použito bez úprav
+
+### mdanter/ecc
+- zdroj: https://github.com/phpecc/phpecc
+- licence: MIT
+- použito bez úprav
+
+### fgrosse/PHPASN1
+(závislost pro mdanter/ecc)
+- zdroj: https://github.com/fgrosse/PHPASN1
+- licence: MIT
+- použito bez úprav

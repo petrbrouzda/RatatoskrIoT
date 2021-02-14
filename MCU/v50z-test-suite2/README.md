@@ -1,6 +1,6 @@
 # RatatoskrIoT: aplikace pro mikrokontroléry ESP8266 a ESP32
 
-## **v43z-test-suite<#>**
+## **v50z-test-suite<#>**
 
 Testovací sady pro kontrolu funkce knihoven. Funguje jen na ESP32, používá RTCMEM.
 

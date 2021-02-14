@@ -1,6 +1,6 @@
 # RatatoskrIoT: aplikace pro mikrokontroléry ESP8266 a ESP32
 
-## **v43b-low_power-DS18B20__ESP8266**
+## **v50b-low_power-DS18B20__ESP8266**
 
 Základní ukázka low-power aplikace na ESP8266. Každých N sekund se probudí, načte teplotu z teploměrů DS18B20 a odešle ji na server.
 

@@ -1,6 +1,6 @@
 # RatatoskrIoT: aplikace pro mikrokontroléry ESP8266 a ESP32
 
-## **v43a-demo-power_always_on**
+## **v50a-demo-power_always_on**
 
 Nejjednodušší kostra aplikace, kde procesor běží nepřetržitě (neuspává se). Aplikace periodicky měří hodnotu (zde napětí na analogovém vstupu) a odesílá ji na server.
 
