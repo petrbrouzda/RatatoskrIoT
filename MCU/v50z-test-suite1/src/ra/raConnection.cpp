@@ -103,7 +103,7 @@ void raConnection::createDataPayload( BYTE *target, BYTE *source, int sourceLen 
     // tohle neni debug, ale uz si konstruuji zpravu!
     btohexa( aes_iv, AES_BLOCKLEN, (char *)target, 130 );
     
-    BYTE payload[RACONN_MAX_DATA+1];
+    BYTE payload[RACONN_MAX_DATA+32+1];
     payload[4] = (sourceLen>>8) & 0xff;
     payload[5] = sourceLen & 0xff;
     memcpy( payload+6, source, sourceLen );
@@ -171,6 +171,7 @@ int raConnection::sendInt( unsigned char * dataKOdeslani, int dataLen )
          );
 
     BYTE* target = this->msg + strlen( (char *)this->msg ); 
+    //D/ this->logger->log( "%s pridavam %d byte payloadu na offset +%d do this->msg", this->identity, dataLen, strlen( (char *)this->msg ) );
     this->createDataPayload( target, (BYTE*)dataKOdeslani, dataLen );
     
     int rc = this->doRequest( url, this->msg, strlen((char*)this->msg) );

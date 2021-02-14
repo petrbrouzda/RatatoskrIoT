@@ -100,7 +100,9 @@ bool ratatoskr::process()
         pos = 3;
         
         while( rec!=NULL ) {
+            //D/ this->logger->log( "%s pridavam zaznam #%d len=%d na pos=%d", this->identity, recs, rec->data_length, pos );
             if( pos + rec->data_length + 2 >= maxLen ) {
+                //D/ this->logger->log( "%s nepridavam, moc dat", this->identity );
                 break;
             }
             data[pos++] = rec->data_length;

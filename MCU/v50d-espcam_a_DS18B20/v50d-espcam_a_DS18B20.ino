@@ -47,7 +47,7 @@
 
   // stav WiFi - je pripojena?
   bool wifiOK = false;
-  // cas, kdy byla nastartovana wifi; pokud se do N sekund po startu nepripoji a neposlou se data, muzeme je zahodit a jit do sleep mode
+  // cas, kdy byla nastartovana wifi
   long wifiStartTime = 0;
   // duvod posledniho startu, naplni se automaticky
   int wakeupReason;
@@ -430,7 +430,7 @@ void setup() {
    */
   if( rtcFlag!=0xdeadface ) {
     // nemame data v RTC pameti
-    rtcFlag==0xdeadface;
+    rtcFlag=0xdeadface;
     lastHighPrioTime = time(NULL);
     msgPriority = 2;
   } else {
