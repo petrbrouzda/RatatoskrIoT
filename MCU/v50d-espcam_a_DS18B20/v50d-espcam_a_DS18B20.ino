@@ -249,8 +249,12 @@ void cameraInit()
     logger->log("Camera init failed with error 0x%x", err);
     logger->log("Restartuji!" );
     blinker.setCode( blinkerErrCamera );
+    // pauza je tu, aby LED dokazala vyblikat chybovy kod
     delay( 4500 );
-    ESP.restart();
+    /* nebudu delat restart takto, protoze by mi to smazalo pripadna namerena data z teplomeru */
+    // ESP.restart();
+    /* misto toho volam funkci pro uspani naprimo, protoze pokud nemam spojeni, tak se neodeslou data z teplomeru a tedy NENI vse odeslano. */
+    raAllWasSent();
   }
 }
 
@@ -275,7 +279,7 @@ int cameraPhoto()
   s->set_saturation(s, 0);     // -2 to 2
   s->set_special_effect(s, 0); // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
   s->set_whitebal(s, 1);       // 0 = disable , 1 = enable
-  s->set_awb_gain(s, 1);       // 0 = disable , 1 = enable
+  s->set_awb_gain(s, 0);       // 0 = disable , 1 = enable
   s->set_wb_mode(s, 0);        // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
   s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable
   s->set_aec2(s, 1);           // 0 = disable , 1 = enable
@@ -322,12 +326,16 @@ void doCamera()
 {
   // zrusime deep sleep po triceti sekundach od startu tim, ze ho nastavime na 100 sekund od ted
   tasker.setTimeout( inactivitySleep, 100000 );
+
+  // inicializace kamery
+  cameraInit();
   
   logger->log( "Mame spojeni, jdu fotit" );
   int rc = cameraPhoto();
   if( rc==0 ) {
     logger->log( "Odeslano, uspavame." );
     blinker.setCode( blinkerOK );
+    // pauza je tu, aby LED dokazala vyblikat OK kod
     delay( 3000 );
     // nevolam deep sleep naprimo, ale takto - tim zajistim, ze se zpracuje pripadna zmena konfigurace prijata pri prihlasovani
     // a nastavim delku spanku na delku pro uspesne odeslani
@@ -336,6 +344,7 @@ void doCamera()
   } else {
     logger->log( "Chyba pri odesilani, uspim jen na pul minuty." );
     blinker.setCode( blinkerErrConn );
+    // pauza je tu, aby LED dokazala vyblikat chybovy kod
     delay( 4500 );
     // volam funkci pro uspani naprimo, protoze pokud nemam spojeni, tak se neodeslou data z teplomeru a tedy NENI vse odeslano.
     raAllWasSent();
@@ -412,9 +421,6 @@ void setup() {
 
   // interval mezi starty - nastavime delku pro neuspesne odeslani (a pri uspechu zmenime)
   sleepPeriod = config.getLong( "sleep_sec_err", 30 ) * 1e6L;
-
-  // inicializace kamery
-  cameraInit();
 
   // pokud se do pul minuty nechyti wifi, uspime zarizeni
   tasker.setTimeout( inactivitySleep, 30000 );
