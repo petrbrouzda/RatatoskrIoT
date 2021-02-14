@@ -33,8 +33,27 @@ class RaDataSource
     {
         return $this->database->fetch('SELECT * FROM devices WHERE name = ?', $login );
     }
+
+    public function getDeviceInfoById( $id )
+    {
+        return $this->database->fetch('SELECT * FROM devices WHERE id = ?', $id );
+    }
+
+
+    public function createLoginaSession( $deviceId, $hash, $key, $remoteIp )
+    {
+        $this->database->query('INSERT INTO prelogin', [
+        	'hash' => $hash,
+        	'device_id' => $deviceId,
+        	'started' => new \Nette\Utils\DateTime,
+            'session_key' => $key,
+            'remote_ip' => $remoteIp
+        ]);    
+        
+        return $this->database->getInsertId();
+    }
     
-    
+    //TODO: Bude smazano - je pro stary login
     /**
      * Delete older sessions for the same device
      * Create session
@@ -70,20 +89,89 @@ class RaDataSource
     }
 
 
-    public function badLogin( $deviceId ) 
+    public function createSessionV2( $preloginSessionId,
+                                    $deviceId, $saveFirstLogin, $hash, $key, $remoteIp, 
+                                    $appName, $uptime, $rssi )
     {
+        $this->database->query('DELETE FROM prelogin WHERE id = ?', $preloginSessionId );
+        $this->database->query('DELETE FROM sessions WHERE device_id = ?', $deviceId );
+        
         $now = new \Nette\Utils\DateTime;
         
+        $this->database->query('INSERT INTO sessions', [
+        	'hash' => $hash,
+        	'device_id' => $deviceId,
+        	'started' => $now,
+            'session_key' => $key,
+            'remote_ip' => $remoteIp
+        ]);    
+        
+        $id = $this->database->getInsertId();
+
         $values = array();
-        $values[ 'last_bad_login' ] = $now;
+        $values[ 'last_login' ] = $now;
+        $values[ 'app_name' ] = $appName;
+        $values[ 'rssi' ] = $rssi;
+        $values[ 'uptime' ] = $uptime;
+        if( $saveFirstLogin ) {
+            $values[ 'first_login' ] = $now;
+        }        
         $this->database->query('UPDATE devices SET', $values, 'WHERE id = ?', $deviceId);
+        
+        return $id;            
     }
 
+
+    public function badLogin( $deviceId ) 
+    {
+        $this->database->query('UPDATE devices SET', [
+            'last_bad_login' => new \Nette\Utils\DateTime
+        ], 'WHERE id = ?', $deviceId);
+    }
+
+    public function setUptime( $deviceId, $uptime ) 
+    {
+        $this->database->query('UPDATE devices SET', [
+            'uptime' => $uptime
+        ], 'WHERE id = ?', $deviceId);
+    }
 
     public function deleteConfigRequest( $deviceId ) 
     {
         $this->database->query('UPDATE devices SET config_data = NULL WHERE id = ?', $deviceId);
     }
+
+
+    /**
+     * Check login session validity. 
+     * Throws NoSessionException when session is not valid.
+     * Returns SessionDevice.
+     */
+    public function checkLoginSession( $sessionId, $sessionHash )
+    {
+        $session = $this->database->fetch('SELECT hash, device_id, started, session_key FROM prelogin WHERE id = ?', $sessionId );
+        if( $session==NULL ) { 
+            throw new \App\Exceptions\NoSessionException( "session {$sessionId} not found" ); 
+        }
+        
+        if( strcmp( $session->hash, $sessionHash )!=0 ) {
+            throw new \App\Exceptions\NoSessionException( "bad hash" );
+        }
+        
+        $now = new DateTime;
+        // zivotnost session 1 den
+        if( $now->diff( $session->started )->i > 5 ) {
+            throw new \App\Exceptions\NoSessionException( "session expired" );
+        }
+        
+        $rc = new \App\Model\SessionDevice();
+        $rc->sessionId = $sessionId;
+        $rc->sessionKey = $session->session_key;
+        $rc->deviceId = $session->device_id;
+        
+        return $rc;
+    }
+
 
     
     /**

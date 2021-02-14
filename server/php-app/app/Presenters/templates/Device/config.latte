@@ -1,0 +1,35 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Zařízení {$device['name']}</h1>
+</div>
+
+<div class="row px-2">
+    <div class="col-12">
+        <h3>Konfigurace zařízení</h3>
+        <i>Tuto konfiguraci nastavte v zařízení.</i>
+    </div>
+</div>
+
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-2">RA URL:</div>
+    <div class="col-12 col-md-10"><b>{$url}</b></div>
+</div>
+<div class="row px-2 ">
+    <div class="col-12 col-md-2">RA device name:</div>
+    <div class="col-12 col-md-10"><b>{$device['name']}</b></div>
+</div>
+<div class="row px-2 bg-light">
+    <div class="col-12 col-md-2">RA passphrase:</div>
+    <div class="col-12 col-md-10"><b>{$device['passphrase']}</b></div>
+</div>
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Device:show $device['id']" class="btn btn-primary btn-sm" role="button">Zpět</a>
+    </div>
+</div>
+
+{/define}

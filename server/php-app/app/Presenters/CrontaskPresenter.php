@@ -597,6 +597,19 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     }
 
 
+    private function processPrelogin()
+    {
+        $limit = (new DateTime())->modify('-3 min');
+        $rows = $this->datasource->getOldPrelogins( $limit );
+        foreach ($rows as $row)
+        {
+            Logger::log( self::NAME, Logger::INFO, "Unused prelogin for dev {$row['device_id']} from IP {$row['remote_ip']}" );
+            $this->datasource->markDeviceLoginProblem( $row['device_id'], $row['started'] );
+            $this->datasource->deletePrelogin( $row['id'] );
+        }
+    }
+
+
     private function checkIp()
     {
         $remoteIp = $this->getHttpRequest()->getRemoteAddress(); 
@@ -612,6 +625,21 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     }
 
     
+
+    /**
+     * Task spousteny kazdou minutu; bezi maximalne minutu.
+     * 
+     * Provadi akce:
+     * - zkontroluje stav senzoru a nafrontuje pozadavky na notifikacni maily:
+     *      - prekroceni min/max limitu
+     *      - neprichazejici data
+     * - odesle notifikacni maily, pokud nejake jsou
+     * - smaze stare zaznamy v 'prelogin' a pokud jsou, aktualizuje odpovidajici zaznamy v 'devices'
+     * - zpracuje 'measures' 
+     *      - vygeneruje z novych zaznamu hodinova 'sumdata' 
+     *      - vygeneruje ze zmenenych hodinovych 'sumdata' denni 'sumdata'
+     * - projde nove obrazky (bloby s typem 'jpg' a nazvem 'camera' a otaguje ty, co jsou cerne)
+     */
     public function renderDefault()
     {
         if( ! $this->checkIp() ) return;
@@ -622,6 +650,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
         
         $this->checkSensors();
         $this->sendNotificationMails();
+        $this->processPrelogin();
 
         $this->processMeasures();
 
@@ -721,6 +750,17 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     }
 
 
+    /**
+     * Task spousteny jednou denne; delka behu neomezena.
+     * 
+     * Denni tasky:
+     * - smaze odeslane notifikace z tabulky notifications (starsi nez 14 dni)
+     * - smaze stara data
+     *      - measures
+     *      - sumdata
+     *      - bloby (db i soubory)
+     * - smaze stare logy
+     */
     public function renderDaily()
     {
         if( ! $this->checkIp() ) return;
@@ -736,8 +776,14 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
         $logger->write( Logger::INFO, "Done."  );
     }
 
+
+
     public $maxRunTimeExport = 55;
 
+    /**
+     * Export novych measures do externiho systemu.
+     * Viz popis https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
+     */
     public function renderExport()
     {
         if( ! $this->checkIp() ) return;

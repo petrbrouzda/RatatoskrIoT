@@ -11,6 +11,14 @@ use Nette\Utils\Random;
 use App\Exceptions\NoSessionException;
 use App\Services\Logger;
 
+// https://github.com/phpecc/phpecc
+
+use Mdanter\Ecc\EccFactory;
+use Mdanter\Ecc\Serializer\Point\UncompressedPointSerializer;
+use Mdanter\Ecc\Crypto\Key\PublicKeyInterface;
+use Mdanter\Ecc\Crypto\Key\PrivateKeyInterface;
+
+
 final class RaPresenter extends Nette\Application\UI\Presenter
 {
     use Nette\SmartObject;
@@ -26,13 +34,17 @@ final class RaPresenter extends Nette\Application\UI\Presenter
     /** @var \App\Services\Config */
     private $config;
 
+    private $generator256k1;
+
     public function __construct(\App\Services\RaDataSource $datasource, \App\Services\MsgProcessor $msgProcessor, \App\Services\Config $config )
     {
         $this->datasource = $datasource;
         $this->msgProcessor = $msgProcessor;
         $this->config = $config;
+        $this->generator256k1 = EccFactory::getSecgCurves()->generator256k1();
     }
 
+    //TODO: Bude smazano - je pro stary login    
     public function actionTime()
     {
         Debugger::enable( Debugger::PRODUCTION );
@@ -43,34 +55,298 @@ final class RaPresenter extends Nette\Application\UI\Presenter
     }
 
 
-    /**
-     * Format login zpravy:
-     *      <device_name>\n
-     *      <login_payload_block>\n
-     *      
-     * Format login_payload_block:
-     *      <AES IV>:<AES_encrypted_data>
-     * oboji zapsane jako retezec hexitu
-     * 
-     * Obsah AES_encrypted_data:
-     *      <AES session key 32 byte><CRC32 z prvnich 16 byte klice><CRC32 z druhych 16 byte klice><real time 4 byte><random data 4 byte>
-     *      
-        Output:
-            SESSION_ID
-    */
+    private $myPrivateKey;
+    
+    private function loadPublicKeyFromString( $string ) : PublicKeyInterface
+    {
+        $x = gmp_init(substr($string, 0, strlen($string) / 2), 16);
+        $y = gmp_init(substr($string, strlen($string) / 2), 16);
+        $point = $this->generator256k1->getCurve()->getPoint($x, $y);    // vraci PointInterface
+        return $this->generator256k1->getPublicKeyFrom($point->getX(), $point->getY());
+    }
+
+    private function generateMyKey()
+    {
+        $adapter = EccFactory::getAdapter();
+        $this->myPrivateKey = $this->generator256k1->createPrivateKey();
+    }
+
+    private function getPublicForMyKey()
+    {
+        $point = $this->myPrivateKey->getPublicKey()->getPoint();
+        //TODO: Pokud je nektera cast kratsi nez 64 chars, tak by se mela doplnit nulami (a otestovat kompatibilitu!). 
+        //TODO: V tento okamzik reseno cyklem, ktery pregeneruje klic, pokud public nema 128 chars.
+        return gmp_strval($point->getX(), 16)  . gmp_strval($point->getY(), 16);
+    }
+
+    public function actionLogina()
+    {
+        Debugger::enable( Debugger::PRODUCTION );
+        $logger = new Logger( self::NAME );
+        $device = false;
+
+        try {
+            $httpRequest = $this->getHttpRequest();
+
+            $remoteIp = $httpRequest->getRemoteAddress(); 
+            $logger->setContext("La;{$remoteIp}");
+
+            $postSize = strlen( $httpRequest->getRawBody() );
+            $logger->write( Logger::INFO, "logina+ {$postSize}b IP:{$remoteIp}" );
+            //D/ $logger->write( Logger::INFO, "RA:logina+ [{$httpRequest->getRawBody()}]" );
+
+            $radky = explode ( "\n" , $httpRequest->getRawBody(), 10 );
+            if( count($radky)<2 ) {
+                throw new \Exception("Bad request (1).");                
+            }
+            $login = Strings::trim($radky[0]);
+            $logger->setContext("La;{$remoteIp};{$login}");
+
+            $inToken = Strings::trim($radky[1]); 
+            if( Strings::length( $login ) == 0  ) {
+                throw new \Exception("Empty login.");
+            } 
+        
+            $device = $this->datasource->getDeviceInfoByLogin( $login );
+            if( $device == NULL ) {
+                throw new \Exception("Login '{$login}' not found.");
+            }
+            
+            // z hesla udelat hash
+            $passphrase = $this->config->decrypt( $device->passphrase, $login );
+            $aesKey = hash("sha256", $passphrase, true);
+
+            //D/ $aesKeyHex = bin2hex($aesKey); 
+            //D/ $logger->write( Logger::INFO, "pass hash: {$aesKeyHex}");
+            
+            // payload rozdelit na IV a cryptext
+            $payload = explode ( ":" , $inToken, 10 );
+            if( count($payload)<2 ) {
+                $this->datasource->badLogin( $device->id );
+                throw new \Exception("Bad request (2).");                
+            }
+            $aesIvHex = Strings::trim($payload[0]);
+            // $logger->write( Logger::INFO, "iv: {$aesIvHex}");
+            $aesIV = hex2bin( $aesIvHex );  
+
+            $aesDataHex = Strings::trim($payload[1]);
+            // $logger->write( Logger::INFO, "data: {$aesDataHex}");
+            $aesData = hex2bin( $aesDataHex );
+            
+            $ecdh_mcu_public = openssl_decrypt($aesData, 'AES-256-CBC', $aesKey, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $aesIV );
+            if( $ecdh_mcu_public == FALSE ) {
+                $this->datasource->badLogin( $device->id );
+                $logger->write( Logger::ERROR,  "nelze rozbalit" );
+                throw new \Exception("Bad crypto block (1).");
+            }
+
+            $ecdh_mcu_public_hex = bin2hex($ecdh_mcu_public);
+            //D/ $logger->write( Logger::INFO, "ECDH MCU public: {$ecdh_mcu_public_hex}" );
+            $pubkey = $this->loadPublicKeyFromString( $ecdh_mcu_public_hex );
+
+            while( true ) {
+                $this->generateMyKey();
+                $mypublic = $this->getPublicForMyKey();
+                if( strlen($mypublic)==128 ) {
+                    break;
+                } 
+                // pokud je kratsi, vypocet klicu se nam nesejde s MCU - je treba vygenerovat novy, viz TODO u getPublicForMyKey()
+                $logger->write( Logger::INFO, 'public key shorter than 128' );        
+            }
+            //D/ $logger->write( Logger::INFO,  "my private: " . gmp_strval($this->myPrivateKey->getSecret(), 16) );
+            //D/ $logger->write( Logger::INFO,  "my public: " . $mypublic );
+
+            $exchange = $this->myPrivateKey->createExchange($pubkey);
+            $shared = $exchange->calculateSharedKey();
+            $secretHex = gmp_strval($shared, 16);
+            while( strlen($secretHex)<64 ) {
+                $secretHex = '0' . $secretHex;
+            }
+            //D/ $logger->write(  Logger::INFO,  "secret: " .  $secretHex );
+            $sessionKeyHex = hash("sha256", hex2bin($secretHex), false );
+            //D/ $logger->write(  Logger::INFO,  "session key: {$sessionKeyHex}" );
+
+            // zalozit session
+            $hash = Random::generate(8, '0-9A-Za-z');
+            $sessionCode = $this->datasource->createLoginaSession( $device->id, 
+                                                            $hash, 
+                                                            $sessionKeyHex,
+                                                            $remoteIp );
+            $sessionId = "{$sessionCode}:{$hash}";
+
+            $aesIV = openssl_random_pseudo_bytes ( 16, $cstrong );
+            $encrypted = openssl_encrypt( hex2bin($mypublic), 'AES-256-CBC', $aesKey, OPENSSL_RAW_DATA , $aesIV );   // | OPENSSL_ZERO_PADDING
+            if( $encrypted === FALSE ) {
+                $logger->write( Logger::ERROR,  "nelze zasifrovat" );
+                throw new \Exception("Chyba sifrovani (s1).");
+            }
+            
+            $this->template->sessionId = $sessionId;
+            $this->template->publicKey = bin2hex( $aesIV ) . ':' . bin2hex($encrypted);
+
+            //D/ $logger->write(  Logger::INFO,  "data: {$this->template->publicKey}" );
+
+            $logger->write( Logger::INFO, "logina-OK D:{$device->id} S:{$sessionId}" );
+
+        } catch (\Exception $e) {
+        
+            //TODO: zapsat chybu do tabulky chyb
+
+            $errMsg = $e->getMessage();
+            if( get_class($e) == 'Mdanter\Ecc\Exception\PointNotOnCurveException' )  {
+                $errMsg = "Bad_password";
+
+                if( $device ) {
+                    $this->datasource->badLogin( $device['id'] );
+                }
+            }
+
+            Logger::log( 'audit', Logger::WARNING, "RA login: " . get_class($e) . ": " . $e->getMessage() );
+            $logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+            
+            $httpResponse = $this->getHttpResponse();
+            $httpResponse->setCode(Nette\Http\Response::S403_FORBIDDEN );
+            $httpResponse->setContentType('text/plain', 'UTF-8');
+            $response = new \Nette\Application\Responses\TextResponse("ERR {$errMsg}");
+            $this->sendResponse($response);
+            $this->terminate();
+        }
+    }
+
+
+    public function actionLoginb()
+    {
+        Debugger::enable( Debugger::PRODUCTION );
+        $logger = new Logger( self::NAME );
+
+        try {
+            $httpRequest = $this->getHttpRequest();
+
+            $remoteIp = $httpRequest->getRemoteAddress(); 
+            $logger->setContext("Lb;{$remoteIp}");
+
+            $postSize = strlen( $httpRequest->getRawBody() );
+            $logger->write( Logger::INFO, "loginb+ {$postSize}b IP:{$remoteIp}" );
+            //D/ $logger->write( Logger::INFO, "RA:logina+ [{$httpRequest->getRawBody()}]" );
+
+            $radky = explode ( "\n" , $httpRequest->getRawBody(), 10 );
+            if( count($radky)<2 ) {
+                throw new \Exception("Bad request (1).");                
+            }
+            $loginSessionId = Strings::trim($radky[0]);
+            if( Strings::length( $loginSessionId ) == 0  ) {
+                throw new \Exception("Empty login id.");
+            }            
+            $inDataBlock = Strings::trim($radky[1]); 
+            if( Strings::length( $inDataBlock ) == 0  ) {
+                throw new \Exception("Empty datablock.");
+            }            
+
+            $loginSessionData = explode( ":", $loginSessionId, 3 );
+            if( count($loginSessionData)<2 ) {
+                throw new \Exception("Bad request (3).");                
+            }
+
+            $sessionDevice = $this->datasource->checkLoginSession( $loginSessionData[0], $loginSessionData[1] );
+            $logger->setContext("Lb;{$remoteIp};D:{$sessionDevice->deviceId}");
+
+            $appInfoDecoded = $this->decryptDataBlock( $inDataBlock, $sessionDevice->sessionKey, $logger );
+            //D/ $logger->write( Logger::INFO, "[{$appInfoDecoded}]" );
+            /*
+            <poslední síla signálu WiFi>\n
+            <uptime v sekundách>\n
+            <config file version>\n
+            <app name>
+            */
+            $appInfo = explode ( "\n" , $appInfoDecoded, 10 );
+            if( count($appInfo)<4 ) {
+                throw new \Exception("Bad request (4).");                
+            }
+            $rssi = $appInfo[0];
+            $uptime  = $appInfo[1];
+            $configVer =  $appInfo[2];
+            $appName = $appInfo[3];
+            $logger->write( Logger::INFO, "uptime={$uptime} rssi={$rssi} cfg={$configVer} [{$appName}]" );
+
+            $device = $this->datasource->getDeviceInfoById( $sessionDevice->deviceId );
+            if( $device == NULL ) {
+                throw new \Exception("Device '{$sessionDevice->deviceId}' not found.");
+            }
+
+            $this->template->config = '';
+            
+            if( $device['config_ver']!="" && $device['config_data']!="" ) {
+                if( $device['config_ver'] != $configVer ) {
+                    // poslat do zarizeni zmenu konfigurace
+                    $logger->write( Logger::INFO, "cfg ver db:{$device['config_ver']}, dev:{$configVer}" );
+                    if( isset($device['config_data']) && strlen($device['config_data'])>0 ) {
+                        $config = "{$device['config_ver']}\n{$device['config_data']}";
+                        $this->template->config = $this->encryptDataBlock( $config, $sessionDevice->sessionKey, $logger );
+                    } else {
+                        $logger->write( Logger::WARNING, "zarizeni ma jinou verzi nez ma mit, ale neceka zadna konfigurace k odeslani" );
+                        //TODO: nastavit verzi konfigurace v DB na stejnou, jakou ma zarizeni
+                    }
+                } else {
+                    // zarizeni ma spravnou verzi - pokud je vyplnen text k odeslani, je mozno ho smazat
+                    if( $device['config_data'] ) {
+                        $logger->write( Logger::INFO, "cfg je OK {$configVer}, mazu cekajici pozadavek" );
+                        $this->datasource->deleteConfigRequest( $device->id );
+                    }
+                }
+            } 
+        
+            $hash = Random::generate(8, '0-9A-Za-z');
+            $sessionCode = $this->datasource->createSessionV2( 
+                                                            $sessionDevice->sessionId,
+                                                            $sessionDevice->deviceId, 
+                                                            $device->first_login==NULL, 
+                                                            $hash, 
+                                                            $sessionDevice->sessionKey,
+                                                            $remoteIp,
+                                                            $appName,
+                                                            $uptime,
+                                                            $rssi );
+
+            $sessionId = "{$sessionCode}:{$hash}";
+
+            $this->template->sessionId = $this->encryptDataBlock( $sessionId, $sessionDevice->sessionKey, $logger );
+
+            $logger->write( Logger::INFO, "loginb-OK D:{$device->id} S:{$sessionCode} cfg:{$configVer}" );
+
+
+        } catch (\Exception $e) {
+        
+            //TODO: zapsat chybu do tabulky chyb
+
+            Logger::log( 'audit', Logger::WARNING, "RA login: " . get_class($e) . ": " . $e->getMessage() );
+            $logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+            
+            $httpResponse = $this->getHttpResponse();
+            $httpResponse->setCode(Nette\Http\Response::S403_FORBIDDEN );
+            $httpResponse->setContentType('text/plain', 'UTF-8');
+            $response = new \Nette\Application\Responses\TextResponse("ERR {$e->getMessage()}");
+            $this->sendResponse($response);
+            $this->terminate();
+        }
+    }
+
+
+    //TODO: Bude smazano - je pro stary login    
     public function actionLogin( $v )
     {
+        Debugger::enable( Debugger::PRODUCTION );
+        $logger = new Logger( self::NAME );
         try {
-            Debugger::enable( Debugger::PRODUCTION );
-            $logger = new Logger( self::NAME );
-
             $httpRequest = $this->getHttpRequest();
 
             $remoteIp = $httpRequest->getRemoteAddress(); 
             $logger->setContext("{$remoteIp}");
 
             $postSize = strlen( $httpRequest->getRawBody() );
-            //D $logger->write( Logger::INFO, "RA:login {$postSize} B {$httpRequest->getMethod()} IP:{$remoteIp}" );
+            //D/ 
+            $logger->write( Logger::INFO, "RA:login {$postSize}b {$httpRequest->getMethod()} IP:{$remoteIp}" );
+            $logger->write( Logger::INFO, "RA:login [{$httpRequest->getRawBody()}]" );
+
             $radky = explode ( "\n" , $httpRequest->getRawBody(), 10 );
             if( count($radky)<2 ) {
                 throw new \Exception("Bad request (1).");                
@@ -347,18 +623,18 @@ final class RaPresenter extends Nette\Application\UI\Presenter
     */
     public function actionData()
     {
+        Debugger::enable( Debugger::PRODUCTION );
+        $logger = new Logger( self::NAME );
+
         try {
-            Debugger::enable( Debugger::PRODUCTION );
-            $logger = new Logger( self::NAME );
-            
             
             $httpRequest = $this->getHttpRequest();
 
             $remoteIp = $httpRequest->getRemoteAddress(); 
-            $logger->setContext("{$remoteIp}");
+            $logger->setContext("D;{$remoteIp}");
 
             $postSize = strlen( $httpRequest->getRawBody() );
-            $logger->write( Logger::INFO, "RA:data+ post {$postSize} B");
+            $logger->write( Logger::INFO, "data+ post {$postSize}b");
             //D $logger->write( Logger::INFO, "[" . $httpRequest->getRawBody() ."]" );
 
             $radky = explode ( "\n" , $httpRequest->getRawBody(), 3 );
@@ -376,18 +652,18 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             if( count($sessionData)<2 ) {
                 throw new \Exception("Bad request (3).");                
             }
+            $logger->write( Logger::INFO, "S:{$sessionData[0]}"); 
             $sessionDevice = $this->datasource->checkSession( $sessionData[0], $sessionData[1] );
-            $logger->setContext("{$remoteIp};D:{$sessionDevice->deviceId}");
+            $logger->setContext("D;{$remoteIp};D:{$sessionDevice->deviceId}");
 
             //D $logger->write( Logger::INFO,  $sessionDevice );
-            $logger->write( Logger::INFO, "S:{$sessionData[0]}"); 
             
             $msgTotal = $this->decryptDataBlock( $data, $sessionDevice->sessionKey, $logger );
 
             //D/ $logger->write( Logger::INFO,  '  celek: ' . bin2hex($msgTotal) );
             $this->msgProcessor->process( $sessionDevice, $msgTotal, $remoteIp, $logger );  
 
-            $logger->write( Logger::INFO, "RA:data-OK");
+            $logger->write( Logger::INFO, "OK");
 
             $this->template->result = "OK";
             
@@ -433,16 +709,16 @@ final class RaPresenter extends Nette\Application\UI\Presenter
      */
     public function actionBlob()
     {
+        Debugger::enable( Debugger::PRODUCTION );
+        $logger = new Logger( self::NAME );
+
         try {
-            Debugger::enable( Debugger::PRODUCTION );
-            $logger = new Logger( self::NAME );
-            
             $httpRequest = $this->getHttpRequest();
             $remoteIp = $httpRequest->getRemoteAddress(); 
-            $logger->setContext("{$remoteIp}");            
+            $logger->setContext("B;{$remoteIp}");            
 
             $postSize = strlen( $httpRequest->getRawBody() );
-            $logger->write( Logger::INFO, "RA:blob+ post {$postSize} B");
+            $logger->write( Logger::INFO, "blob+ post {$postSize} B");
             // $logger->write( Logger::INFO, "[" . $httpRequest->getRawBody() ."]" );
 
             $radky = explode ( "\n" , $httpRequest->getRawBody() );
@@ -459,11 +735,11 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             if( count($sessionData)<2 ) {
                 throw new \Exception("Bad request (3).");                
             }
+            $logger->write( Logger::INFO, "S:{$sessionData[0]}"); 
             $sessionDevice = $this->datasource->checkSession( $sessionData[0], $sessionData[1] );
-            $logger->setContext("{$remoteIp};D:{$sessionDevice->deviceId}");
+            $logger->setContext("B;{$remoteIp};D:{$sessionDevice->deviceId}");
 
             //D $logger->write( Logger::INFO,  $sessionDevice );
-            $logger->write( Logger::INFO, "RA:blob S:{$sessionData[0]}"); 
             
             //TODO: kontrolovat zmenu IP adresy a v pripade zmeny vratit 403 ?
             
@@ -487,7 +763,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             $logger->write( Logger::INFO,  "RA:blob [{$blobDesc}] ext={$blobExtension} t=-{$header[0]} l={$blobLen}" );
 
             if( 2*$blobLen > ($postSize - strlen($radky[0]) - strlen($radky[1]) - strlen($radky[2])) ) {
-                $logger->write( Logger::INFO,  "RA:blob nekompletni data!" );
+                $logger->write( Logger::INFO,  "blob: nekompletni data!" );
                 throw new \Exception("Incomplete POST data.");
             }
 
@@ -536,7 +812,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             
             $rowId = $this->datasource->updateBlob( $rowId, $subpath.$fileName ); 
 
-            $logger->write( Logger::INFO, "RA:blob-OK");
+            $logger->write( Logger::INFO, "OK");
 
             $this->template->result = "OK";
             

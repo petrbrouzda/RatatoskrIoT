@@ -114,8 +114,6 @@ final class DevicePresenter extends BaseAdminPresenter
             // editace
             $device = $this->datasource->getDevice( $id );
             if (!$device) {
-                Logger::log( 'audit', Logger::ERROR ,
-                    "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
                 $this->error('Zařízení nebylo nalezeno');
             }
             $this->checkAcces( $device->user_id );
@@ -142,10 +140,12 @@ final class DevicePresenter extends BaseAdminPresenter
 
         $post = $this->datasource->getDevice( $id );
         if (!$post) {
-            Logger::log( 'audit', Logger::ERROR ,
-                "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
             $this->error('Zařízení nebylo nalezeno');
         }
+
+        Logger::log( 'audit', Logger::INFO ,
+            "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} edituje/prohlizi konfiguraci/heslo zarizeni {$id}" );
+
         $post = $post->toArray();
         $post['passphrase'] = $this->config->decrypt( $post['passphrase'], $post['name'] );
         $this->checkAcces( $post['user_id'] );
@@ -162,19 +162,93 @@ final class DevicePresenter extends BaseAdminPresenter
 
 
 
+    public function renderConfig(int $id): void
+    {
+        $this->checkUserRole( 'user' );
+
+        $post = $this->datasource->getDevice( $id );
+        if (!$post) {
+            $this->error('Zařízení nebylo nalezeno');
+        }
+        $post = $post->toArray();
+        $post['passphrase'] = $this->config->decrypt( $post['passphrase'], $post['name'] );
+        $this->checkAcces( $post['user_id'] );
+        $this->template->device = $post;
+
+        Logger::log( 'audit', Logger::INFO ,
+            "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} prohlizi konfiguraci/heslo zarizeni {$id}" );
+
+        $blobCount = $this->datasource->getBlobCount( $id );
+
+        $url = new Url( $this->getHttpRequest()->getUrl()->getBaseUrl() );
+        $url->setScheme('http');
+        $url1 = $url->getAbsoluteUrl() . 'ra';
+        $this->template->url = substr( $url1 , 7 );
+
+        $submenu = array();
+        $submenu[] =   ['id' => '102', 'link' => "device/show/{$id}", 'name' => "· Zařízení {$post['name']}" ];
+        if( $blobCount>0 ) {
+            $submenu[] =   ['id' => '103', 'link' => "device/blobs/{$id}", 'name' => "· · Soubory ({$blobCount})" ];
+        }
+        $this->populateTemplate( 102, 1, $submenu );
+        $this->template->path = '../';
+    }
+
+
+    private function secondsToTime($inputSeconds) {
+        $secondsInAMinute = 60;
+        $secondsInAnHour = 3600;
+        $secondsInADay = 86400;
+    
+        // Extract days
+        $days = floor($inputSeconds / $secondsInADay);
+    
+        // Extract hours
+        $hourSeconds = $inputSeconds % $secondsInADay;
+        $hours = floor($hourSeconds / $secondsInAnHour);
+    
+        // Extract minutes
+        $minuteSeconds = $hourSeconds % $secondsInAnHour;
+        $minutes = floor($minuteSeconds / $secondsInAMinute);
+    
+        // Extract the remaining seconds
+        $remainingSeconds = $minuteSeconds % $secondsInAMinute;
+        $seconds = ceil($remainingSeconds);
+    
+        // Format and return
+        $timeParts = [];
+        $sections = [
+            'd' => (int)$days,
+            'hod' => (int)$hours,
+            'min' => (int)$minutes,
+            'sec' => (int)$seconds,
+        ];
+    
+        foreach ($sections as $name => $value){
+            if ($value > 0){
+                $timeParts[] = $value. ' '.$name;
+            }
+        }
+    
+        return implode(', ', $timeParts);
+    }
+
+
     public function renderShow(int $id): void
     {
         $this->checkUserRole( 'user' );
 
         $post = $this->datasource->getDevice( $id );
         if (!$post) {
-            Logger::log( 'audit', Logger::ERROR ,
-                "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
             $this->error('Zařízení nebylo nalezeno');
         }
         $post = $post->toArray();
         $post['passphrase'] = $this->config->decrypt( $post['passphrase'], $post['name'] );
         $this->checkAcces( $post['user_id'] );
+
+        if( $post['uptime'] ) {
+            $this->template->uptime = $this->secondsToTime( $post['uptime'] );
+        }
 
         $post['problem_mark'] = false;
         if( $post['last_bad_login'] != NULL ) {
@@ -199,10 +273,6 @@ final class DevicePresenter extends BaseAdminPresenter
         $this->populateTemplate( 102, 1, $submenu );
         $this->template->path = '../';
 
-        $url = new Url( $this->getHttpRequest()->getUrl()->getBaseUrl() );
-        $url->setScheme('http');
-        $url1 = $url->getAbsoluteUrl() . 'ra';
-        $this->template->url = substr( $url1 , 7 );
 
         $this->template->device = $post;
         $this->template->soubory = $blobCount;
@@ -236,8 +306,6 @@ final class DevicePresenter extends BaseAdminPresenter
 
         $post = $this->datasource->getDevice( $id );
         if (!$post) {
-            Logger::log( 'audit', Logger::ERROR ,
-                "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
             $this->error('Zařízení nebylo nalezeno');
         }
         $post = $post->toArray();
@@ -265,8 +333,6 @@ final class DevicePresenter extends BaseAdminPresenter
 
         $post = $this->datasource->getDevice( $id );
         if (!$post) {
-            Logger::log( 'audit', Logger::ERROR ,
-                "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
             $this->error('Zařízení nebylo nalezeno');
         }
         $post = $post->toArray();
@@ -307,8 +373,6 @@ final class DevicePresenter extends BaseAdminPresenter
 
         $post = $this->datasource->getDevice( $id );
         if (!$post) {
-            Logger::log( 'audit', Logger::ERROR ,
-                "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
             $this->error('Zařízení nebylo nalezeno');
         }
         $this->checkAcces( $post->user_id );
@@ -345,8 +409,6 @@ final class DevicePresenter extends BaseAdminPresenter
             // overeni prav
             $post = $this->datasource->getDevice( $id );
             if (!$post) {
-                Logger::log( 'audit', Logger::ERROR ,
-                    "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
                 $this->error('Zařízení nebylo nalezeno');
             }
             $this->checkAcces( $post->user_id );
@@ -374,8 +436,6 @@ final class DevicePresenter extends BaseAdminPresenter
 
         $post = $this->datasource->getDevice( $id );
         if (!$post) {
-            Logger::log( 'audit', Logger::ERROR ,
-                "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
             $this->error('Zařízení nebylo nalezeno');
         }
         $post = $post->toArray();
@@ -416,8 +476,6 @@ final class DevicePresenter extends BaseAdminPresenter
             // editace
             $device = $this->datasource->getDevice( $id );
             if (!$device) {
-                Logger::log( 'audit', Logger::ERROR ,
-                    "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} zkusil pristoupit k cizimu device {$id}" );
                 $this->error('Zařízení nebylo nalezeno');
             }
             $this->checkAcces( $device->user_id );

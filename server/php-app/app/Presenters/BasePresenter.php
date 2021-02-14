@@ -14,6 +14,9 @@ class BasePresenter extends Nette\Application\UI\Presenter
     public function checkUserRole( $reqRole ) 
     {
         if( !$this->getUser()->loggedIn ) {
+            Logger::log( 'webapp', Logger::ERROR , 
+                "[{$this->getHttpRequest()->getRemoteAddress()}] ACCESS: Uzivatel je neprihlaseny, jdeme na login." ); 
+
             if ($this->getUser()->logoutReason === Nette\Security\IUserStorage::INACTIVITY) {
 				$this->flashMessage('Dlouho jste neudělal/a žádnou akci, z bezpečnostních důvodů došlo k odhlášení. Přihlašte se prosím znovu.');
 			} else {

@@ -9,22 +9,15 @@
 <div class="row px-2">
     <div class="col-12">
         <h3>Konfigurace zařízení</h3>
-        <i>Tuto konfiguraci nastavte v zařízení.</i>
+        <i>Po stisku tlačítka se zobrazí konfigurace, kterou je potřeba nastavit do zařízení v konfiguračním portálu zařízení.</i>
+    </div>
+</div>
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Device:config $device['id']" class="btn btn-outline-primary btn-sm" role="button">Zobrazit konfiguraci</a>
     </div>
 </div>
 
-<div class="row px-2 bg-light">
-    <div class="col-12 col-md-2">RA URL:</div>
-    <div class="col-12 col-md-10"><b>{$url}</b></div>
-</div>
-<div class="row px-2 ">
-    <div class="col-12 col-md-2">RA device name:</div>
-    <div class="col-12 col-md-10"><b>{$device['name']}</b></div>
-</div>
-<div class="row px-2 bg-light">
-    <div class="col-12 col-md-2">RA passphrase:</div>
-    <div class="col-12 col-md-10"><b>{$device['passphrase']}</b></div>
-</div>
 
 <div class="row px-2 pt-3">
     <div class="col-12">
@@ -49,7 +42,6 @@
         {/if}
     </div>
 </div>
-
 <div class="row px-2">
     <div class="col-12 col-md-2">Poslední přihlášení:</div>
 {if ($device['problem_mark'])} 
@@ -60,17 +52,31 @@
     </b></div>
 {else}
     <div class="col-12 col-md-10"><b>{$device['last_login']}</b></div>
-{/if} 
-    
+{/if}   
 </div>
 
-<div class="row px-2  bg-light"">
-    <div class="col-12 col-md-2">Bezpečnostní token pro JSON data:</div>
+{if $device['rssi'] }
+<div class="row px-2  bg-light ">
+    <div class="col-12 col-md-2">Síla WiFi signálu:</div>
+    <div class="col-12 col-md-10"><b>{$device['rssi']} dBm</b> (při posledním přihlášení)</div>
+</div>
+{/if}
+
+{if $device['uptime'] }
+<div class="row px-2  ">
+    <div class="col-12 col-md-2">Uptime:</div>
+    <div class="col-12 col-md-10"><b>{$uptime}</b> (při poslední komunikaci)</div>
+</div>
+{/if}
+
+
+<div class="row px-2  bg-light">
+    <div class="col-12 col-md-2">Bezp. token pro JSON data:</div>
     <div class="col-12 col-md-10"><b>{$device['json_token']}</b></div>
 </div>
 
 <div class="row px-2 ">
-    <div class="col-12 col-md-2">Bezpečnostní token pro galerii:</div>
+    <div class="col-12 col-md-2">Bezp. token pro galerii:</div>
     <div class="col-12 col-md-10"><b>{$device['blob_token']}</b></div>
 </div>
 

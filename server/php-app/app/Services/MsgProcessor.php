@@ -128,6 +128,8 @@ class MsgProcessor
 
         // payload send timestamp
         $sendTime = (ord($msgTotal[0])<<16) | (ord($msgTotal[1])<<8) | ord($msgTotal[2]);
+        $logger->write( Logger::DEBUG, "uptime:{$sendTime}" );
+        $this->datasource->setUptime( $sessionDevice->deviceId, $sendTime );
 
         // telemetry payload header
         $j = 3;

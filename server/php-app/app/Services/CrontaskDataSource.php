@@ -216,6 +216,29 @@ class CrontaskDataSource
     }
 
 
+    /**
+     *  id	hash	device_id	started	remote_ip	session_key
+     */
+    public function getOldPrelogins( $limit )
+    {
+        return $this->database->fetchAll(  
+            'select * from prelogin
+             where started < ?',
+            $limit );
+    }
+
+    public function markDeviceLoginProblem( $deviceId, $ltime )
+    {
+        $this->database->query('UPDATE devices SET ', [ 
+            'last_bad_login' => $ltime
+        ] , 'WHERE id = ? AND ( (last_login is NULL) OR (last_login < ?) ) ', $deviceId , $ltime );
+    }
+
+    public function deletePrelogin( $id )
+    {
+        $this->database->query('DELETE from prelogin WHERE id = ? ', $id  );
+    }
+
     public function getSensors()
     {
         return $this->database->fetchAll(  "
