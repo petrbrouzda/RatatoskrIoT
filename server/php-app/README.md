@@ -6,5 +6,7 @@ Návod k instalaci serveru najdete zde: https://pebrou.wordpress.com/2021/01/18/
 
 Pokud chcete replikovat data do jiného systému: https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/ 
 
-V adresáři **/MCU** jsou ukázkové aplikace pro ESP32 a ESP8266.
+V adresáři [/MCU](/MCU) jsou ukázkové aplikace pro ESP32 a ESP8266.
+
+V souboru [/CHANGELOG.md](/CHANGELOG.md) najdete informace o změnách.
 
