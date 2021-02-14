@@ -1,5 +1,11 @@
 # Changelog
 
+## 2021-02-14 verze 5.1.2
+MCU:
+- Ostranění pádu při posílání příliš mnoha záznamů najednou
+- Oprava nastavování priority zpráv u v50d-espcam_a_DS18B20 a v50b-low_power-DS18B20__ESP32
+
+----
 ## 2021-02-12 verze 5.1.1
 Server i MCU:
 - **Velká změna:** Na pobídnutí @danmaneu změněn způsob přihlašování tak, že používá **ECDH** a je výrazně odolnější proti všem formám útoku.
