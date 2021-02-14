@@ -1,4 +1,4 @@
--- Adminer 4.7.6 MySQL dump
+-- vlozi defaultniho uzivatele 'admin' s heslem 'heslo'
 
 SET NAMES utf8;
 SET time_zone = '+00:00';
@@ -9,3 +9,4 @@ INSERT INTO `rausers` (`id`, `username`, `phash`, `role`, `email`, `prefix`, `st
 (1,	'admin',	'$2y$11$5bCGPCSvLeJ/NudG64ceKuHjQ4CjomrUUyXh2Qw3iCWJxTVRnWeTy',	'admin,user',	'vas.email@gmail.com',	'AA',	10,	0,	NULL,	90,	731,	14,	0,	NULL,	0,	'2021-01-12 13:33:58',	'-',	'-',	'2021-01-12 13:31:19',	'-',	'-',	NULL,	NULL,	NULL,	NULL)
 ;
 
+-- 2021-01-12 12:37:19

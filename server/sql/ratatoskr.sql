@@ -36,6 +36,8 @@ CREATE TABLE `devices` (
   `blob_token` varchar(255) COLLATE utf8_czech_ci DEFAULT NULL,
   `monitoring` tinyint(4) DEFAULT NULL,
   `app_name` varchar(256) COLLATE utf8_czech_ci DEFAULT NULL,
+  `uptime` int(11) DEFAULT NULL,
+  `rssi` smallint(6) DEFAULT NULL,
   `config_ver` smallint(6) DEFAULT NULL,
   `config_data` text COLLATE utf8_czech_ci,
   PRIMARY KEY (`id`),
@@ -64,7 +66,7 @@ CREATE TABLE `measures` (
   `session_id` mediumint(9) DEFAULT NULL,
   `remote_ip` varchar(32) COLLATE utf8_czech_ci DEFAULT NULL,
   `out_value` double DEFAULT NULL COMMENT 'processed value',
-  `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0 = received, 1 = processed',
+  `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0 = received, 1 = processed, 2 = exported',
   PRIMARY KEY (`id`),
   KEY `device_id_sensor_id_data_time_id` (`sensor_id`,`data_time`,`id`),
   KEY `status_id` (`status`,`id`)
@@ -84,6 +86,18 @@ CREATE TABLE `notifications` (
   `out_value` double DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+
+
+DROP TABLE IF EXISTS `prelogin`;
+CREATE TABLE `prelogin` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `hash` varchar(20) COLLATE utf8_czech_ci NOT NULL,
+  `device_id` smallint(6) NOT NULL,
+  `started` datetime NOT NULL,
+  `remote_ip` varchar(32) COLLATE utf8_czech_ci NOT NULL,
+  `session_key` varchar(255) COLLATE utf8_czech_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Sem se ukládají session po akci LOGINA - před tím, než je zařízení potvrdí via LOGINB';
 
 
 DROP TABLE IF EXISTS `rausers`;
@@ -270,4 +284,4 @@ INSERT INTO `view_source` (`id`, `desc`, `short_desc`) VALUES
 (8,	'Hodinové maximum',	'Hodinové maximum'),
 (9,	'Hodinové/denní maximum',	'Do 90denních pohledů hodinové maximum, pro delší denní maximum');
 
--- 2021-01-10 22:16:02
+-- 2021-02-12 14:02:46
