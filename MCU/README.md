@@ -2,29 +2,34 @@
 
 Informace, motivace a použití jsou popsány zde: https://pebrou.wordpress.com/2021/01/07/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-1-n/
 
-Serverová aplikace je v adresáři **/server**.
+Serverová aplikace je v adresáři [/server/php-app](/server/php-app) .
+
+V souboru [/CHANGELOG.md](/CHANGELOG.md) najdete informace o změnách.
+
+**Všechny aplikace "v50-*" vyžadují server verze 5.x (2021-02-12 a novější)!** 
 
 
-## **v43a-demo-power_always_on**
+
+## **v50a-demo-power_always_on**
 
 Nejjednodušší kostra aplikace, kde **procesor běží nepřetržitě** (neuspává se). Aplikace periodicky měří hodnotu (zde napětí na analogovém vstupu) a odesílá ji na server.
 
 
-## **v43b-low_power-DS18B20__ESP32**
+## **v50b-low_power-DS18B20__ESP32**
 
 Základní ukázka **low-power aplikace** na ESP32. Každých N sekund se probudí, načte teplotu z teploměrů DS18B20 a odešle ji na server.
 
 Pokud není spojení na server, ukládá data do keše v RTCMEM a odešle je, až spojení bude.
 
 
-## **v43b-low_power-DS18B20__ESP8266**
+## **v50b-low_power-DS18B20__ESP8266**
 
 Základní ukázka **low-power aplikace** na ESP8266. Každých N sekund se probudí, načte teplotu z teploměrů DS18B20 a odešle ji na server.
 
 Pokud není spojení na server, data se ztratí, protože procesor se po zadaném čase uspí a ESP8266 nemá dost RTCMEM, aby se tam daly kešovat data k odeslání.
 
 
-## **v43c-impulse_gas_meter**
+## **v50c-impulse_gas_meter**
 
 Základní ukázka aplikace načítající **impulzní vstup** (tedy ne kontinuální, spojitou veličinu, ale počet impulzů). Procesor běží nepřetržitě (neuspává se).
 
@@ -32,12 +37,12 @@ Je zde předvedena i **úprava konfiguračního portálu,** aby se v něm dala z
 
 
 
-## **v43d-espcam**
+## **v50d-espcam**
 Aplikace pro [modul ESP32-CAM](https://www.banggood.com/ESP32-CAM-WiFi-+-bluetooth-Camera-Module-Development-Board-ESP32-With-Camera-Module-OV2640-IPEX-2_4G-SMA-Anten-p-1549751.html?p=FY1402881924201411VQ&zf=881924) - tj. ESP32 s PSRAM a 2 Mpix kamerou.
 
 Periodicky jednou za N sekund se probudí a pokud se podaří připojení na WiFi, sejme fotku a odešle ji na server. Pak se uspí na zadanou dobu do deep sleep.
 
-## **v43d-espcam_a_DS18B20**
+## **v50d-espcam_a_DS18B20**
 Aplikace pro [modul ESP32-CAM](https://www.banggood.com/ESP32-CAM-WiFi-+-bluetooth-Camera-Module-Development-Board-ESP32-With-Camera-Module-OV2640-IPEX-2_4G-SMA-Anten-p-1549751.html?p=FY1402881924201411VQ&zf=881924) - tj. ESP32 s PSRAM a 2 Mpix kamerou, a k němu připojené onewire teploměry DS18B20.
 
 Periodicky jednou za N sekund
@@ -47,7 +52,7 @@ Periodicky jednou za N sekund
 
 Data z teploměrů jsou kešována do RTCMEM, takže se ukládají, i když není zrovna připojení k WiFi či spojení na server (a odešlou se, až bude spojení k dispozici).
 
-## **v43z-test-suite<#>**
+## **v50z-test-suite<#>**
 
 Testovací sady pro kontrolu funkce knihoven.
 
@@ -93,6 +98,12 @@ Aplikace obsahují následující kód třetích stran ve formě zdrojových kó
 - zdroj: https://github.com/tzapu/WiFiManager
 - licence: MIT
 - provedeny úpravy (např. možnost načtení SSID a hesla)
+
+### kmackay/micro-ecc
+- src\micro_ecc\
+- zdroj: https://github.com/kmackay/micro-ecc
+- licence: BSD-2-Clause License
+- přejmenovány .inc -> .h, jinak žádné úpravy
 
 
 
