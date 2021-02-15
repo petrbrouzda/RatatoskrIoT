@@ -1,11 +1,17 @@
 # RatatoskrIoT: IoT aplikace na ESP32/ESP8266 a serverová aplikace k tomu
 
 ## Základní informace
-Informace, motivace a použití jsou popsány zde: https://pebrou.wordpress.com/2021/01/07/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-1-n/
 
-V adresáři [MCU](MCU) jsou ukázkové aplikace pro ESP32 a ESP8266.
+**RatatoskrIoT** je IoT framework pro jednoduchou obsluhu **senzorů** postavených na ESP32/ESP8266, včetně serverové aplikace schopné zpracovávat data z mnoha senzorů a za mnoho let.
+- Aplikace pro mikrokontroléry je pro Arduino IDE a klade důraz na rychlost vývoje a odstínění programátora od zajištění konfigurace, správy WiFi a vlastní komunikace se serverem.
+- Serverová aplikace je pro PHP 7.2+, data ukládá do MySQL.
+- Komunikační protokol je nad http, přenášený obsah je šifrovaný (AES-256-CBC) a k výměně klíčů se používá ECDH.
 
-V adresáři [server](server) je serverová aplikace.
+Detailnější popis "k čemu to je", "k čemu to není" a "jak to použít" najdete zde: https://pebrou.wordpress.com/2021/01/07/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-1-n/
+
+Co je v repository?
+- V adresáři [MCU](MCU) jsou ukázkové aplikace pro ESP32 a ESP8266.
+- V adresáři [server](server) je serverová aplikace.
 
 ## Verze 5.1.1 (2021-02-12)
 
