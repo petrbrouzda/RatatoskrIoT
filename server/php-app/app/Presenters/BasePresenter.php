@@ -6,6 +6,7 @@ namespace App\Presenters;
 
 use Nette;
 use Tracy\Debugger;
+use App\Services\Logger;
 
 class BasePresenter extends Nette\Application\UI\Presenter
 {
