@@ -4,7 +4,9 @@
  */
 
 void raBlinkerChangeStateBridge() {
+#ifdef USE_BLINKER
   blinker.changeState();
+#endif
 }
 
 raBlinker::raBlinker( int pin )
