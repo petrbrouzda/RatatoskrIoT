@@ -644,26 +644,31 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     {
         if( ! $this->checkIp() ) return;
 
-        $totalEnde = time() + $this->maxRunTime2  + $this->maxRunTime1;
-        $this->startTime = time();
-        $this->endTime = time() + $this->maxRunTime1;
-        
-        $this->checkSensors();
-        $this->sendNotificationMails();
-        $this->processPrelogin();
+        try {
 
-        $this->processMeasures();
+            $totalEnde = time() + $this->maxRunTime2  + $this->maxRunTime1;
+            $this->startTime = time();
+            $this->endTime = time() + $this->maxRunTime1;
+            
+            $this->checkSensors();
+            $this->sendNotificationMails();
+            $this->processPrelogin();
 
-        $this->startTime = time();
-        $this->endTime = time() + $this->maxRunTime2;
-        $this->processSumdata();
+            $this->processMeasures();
 
-        // nechame na obrazky zbytek do celkoveho maxima delky behu
-        $this->endTime = time() + $this->maxRunTime3;
-        if( $this->endTime >  $totalEnde ) {
-            $this->endTime = $totalEnde;
+            $this->startTime = time();
+            $this->endTime = time() + $this->maxRunTime2;
+            $this->processSumdata();
+
+            // nechame na obrazky zbytek do celkoveho maxima delky behu
+            $this->endTime = time() + $this->maxRunTime3;
+            if( $this->endTime >  $totalEnde ) {
+                $this->endTime = $totalEnde;
+            }
+            $this->processImages();
+        } catch (\Exception $e) {
+            Logger::log( self::NAME, Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
         }
-        $this->processImages();
     }
 
 
@@ -764,16 +769,23 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     public function renderDaily()
     {
         if( ! $this->checkIp() ) return;
-        
-        $logger = new Logger( "cron" );
-        $logger->setContext("daily");
-        
-        $this->datasource->deleteNotifications();
-        $this->deleteData( $logger );
-        $this->deleteLogs( $logger );
 
-        $this->template->result = "OK";
-        $logger->write( Logger::INFO, "Done."  );
+        try {
+        
+            $logger = new Logger( "cron" );
+            $logger->setContext("daily");
+            
+            $this->datasource->deleteNotifications();
+            $this->deleteData( $logger );
+            $this->deleteLogs( $logger );
+
+            $this->template->result = "OK";
+            $logger->write( Logger::INFO, "Done."  );
+
+        } catch (\Exception $e) {
+            Logger::log( self::NAME, Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+        }
+
     }
 
 
@@ -793,50 +805,56 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
         $logger = new Logger( "cron" );
         $logger->setContext("exp");
 
-        $ct = 0;
+        try {
 
-        $exporter = $this->context->getService('exportPlugin');
+            $ct = 0;
 
-        while( true ) {
-            $rows = $this->datasource->getExportData();
-            if (count($rows) < 1) {
-		    break;
-	    }
-            foreach( $rows as $row ) {
-                $rc = $exporter->exportRecord( 
-                    $row->id,		
-                    $row->data_time,
-                    $row->server_time,
-                    $row->value,	
-                    $row->sensor_id, 
-                    $row->sensor_name,	
-                    $row->device_id,
-                    $row->device_name,	
-                    $row->user_id                     
-                );
-                if( $rc == 0 ) {
-                    $this->datasource->rowExported( $row->id );
-                    $ct++;
-                } else {
-                    $logger->write( Logger::DEBUG,  "#{$row->id} time={$row->data_time} value={$row->value} sensor={$row->sensor_id}={$row->sensor_name} device={$row->device_id}={$row->device_name} user={$row->user_id}" );                    
-                    $logger->write( Logger::WARNING, "Chyba exportu #{$rc}."  );
-                    $logger->write( Logger::INFO, "Stopping, {$ct} records done."  );
-                    $this->template->result = "ERROR #{$rc}";
-                    return;
+            $exporter = $this->context->getService('exportPlugin');
+
+            while( true ) {
+                $rows = $this->datasource->getExportData();
+                if (count($rows) < 1) {
+                break;
+            }
+                foreach( $rows as $row ) {
+                    $rc = $exporter->exportRecord( 
+                        $row->id,		
+                        $row->data_time,
+                        $row->server_time,
+                        $row->value,	
+                        $row->sensor_id, 
+                        $row->sensor_name,	
+                        $row->device_id,
+                        $row->device_name,	
+                        $row->user_id                     
+                    );
+                    if( $rc == 0 ) {
+                        $this->datasource->rowExported( $row->id );
+                        $ct++;
+                    } else {
+                        $logger->write( Logger::DEBUG,  "#{$row->id} time={$row->data_time} value={$row->value} sensor={$row->sensor_id}={$row->sensor_name} device={$row->device_id}={$row->device_name} user={$row->user_id}" );                    
+                        $logger->write( Logger::WARNING, "Chyba exportu #{$rc}."  );
+                        $logger->write( Logger::INFO, "Stopping, {$ct} records done."  );
+                        $this->template->result = "ERROR #{$rc}";
+                        return;
+                    }
+                    if( time() > $timeLimit ) {
+                        // prekrocena maximalni delka behu
+                        break;
+                    }
                 }
                 if( time() > $timeLimit ) {
                     // prekrocena maximalni delka behu
                     break;
                 }
             }
-            if( time() > $timeLimit ) {
-                // prekrocena maximalni delka behu
-                break;
-            }
+        
+            $this->template->result = "OK";
+            $logger->write( Logger::INFO, "Done, {$ct} records."  );
+
+        } catch (\Exception $e) {
+            $logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
         }
-    
-        $this->template->result = "OK";
-        $logger->write( Logger::INFO, "Done, {$ct} records."  );
     }
 
 }
