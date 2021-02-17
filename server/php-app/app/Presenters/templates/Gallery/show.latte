@@ -8,6 +8,7 @@
 
 {if $iterator->first}
         <div class="col-12 col-sm-12 col-md-12 col-xl-8 pb-2 text-center">
+            <a name="{$blob['href']}"></a>&nbsp;
             {if ($blob['extension']=='jpg')}
                 <a href="{$blob['id']}/"><img src="{$blob['id']}/" border="0" loading="lazy"></a>
             {else}
