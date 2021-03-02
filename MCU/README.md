@@ -8,6 +8,9 @@ V souboru [/CHANGELOG.md](/CHANGELOG.md) najdete informace o změnách.
 
 **Všechny aplikace "v50-*" vyžadují server verze 5.x (2021-02-12 a novější)!** 
 
+Zdrojáky jsou určené pro Arduino IDE.
+* ESP32 bylo testováno s ESP32 core verze 1.0.4; prvotní testy s 1.0.5 vypadají také OK
+* ESP8266 bylo testováno s ESP8266 core 2.7.1
 
 
 ## **v50a-demo-power_always_on**
