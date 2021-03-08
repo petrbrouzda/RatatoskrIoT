@@ -10,12 +10,33 @@
  * 
  * Neuklada fotky na SD kartu.
  * 
- * Aplikace ma vzdalene konfigurovatelnou hodnoty: 
- * 1) sleep_sec - na jakou ma jit do deep sleepu, tedy interval mezi jednotlivymi behy. [sekundy]
- * 2) sleep_sec_err - na jakou ma jit do deep sleepu v pripade, ze se nepodarilo odeslat obrazek. [sekundy]
- * Tedy
- *    sleep_sec=180
- * nastavi interval na 3 minuty.
+  * Aplikace ma vzdalene konfigurovatelne hodnoty: 
+ 
+Nastaveni behu aplikace:
+
+ 1) sleep_sec - na jakou ma jit do deep sleepu, tedy interval mezi jednotlivymi behy. [sekundy]
+
+ 2) sleep_sec_err - na jakou ma jit do deep sleepu v pripade, ze se nepodarilo odeslat obrazek. [sekundy]
+
+ Nastaveni kamery:
+
+ 3) cam_rotate - 0-3, default 0
+    bit 0 = hmirror
+    bit 1 = vflip
+  Tedy:
+    0 = primy obraz
+    1 = zrcadlove otoceny
+    2 = vzhuru nohama 
+    3 = vzhuru nohama + zrcadlove otoceny
+
+4) cam_agc_gain - 0-6, default 6
+    nastaveni maxima automatickeho gainu 0 (2x) az 6 (128x)
+
+5) cam_awb - nastaveni white balance
+    -1 automaticky (awb_gain=0 awb=0)
+    0-4 awb_gain=1 awb=hodnota 0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home
+    POZOR! Hodnota 0 funguje podivne.
+
  * 
  * Zapojeni
  * - na pinu 13 je pripojen teplomer (ci vice teplomeru) DS18B20 (standardne, tj. vcc na +3.3V, gnd na gnd, data na 13 a mezi data a vcc rezistor 4.7k)
@@ -23,6 +44,11 @@
  * 
  * Zde je schema, jak propojit s USB-serial adapterem pro naprogramování:
  * https://randomnerdtutorials.com/esp32-cam-post-image-photo-server/
+ *
+ * Nastaveni desky:
+   - PSRAM on
+   - CPU speed 160 MHz
+   - Flash speed 80 MHz
  */
 
 /*
@@ -196,15 +222,18 @@ void ds18b20()
 
     logger->log( "#%d %s -> %s C", i, addr, charVal );
 
-    int ch = ra->defineChannel( DEVCLASS_CONTINUOUS_MINMAXAVG, 1, addr, 3600 );
-    ra->postData( ch, msgPriority, temp );
+    // pokud je chyba pri cteni, vraci se -127 stupnu
+    if( temp > -80.0 ) {
+      int ch = ra->defineChannel( DEVCLASS_CONTINUOUS_MINMAXAVG, 1, addr, 3600 );
+      ra->postData( ch, msgPriority, temp );
+    }
   }
 }
 
 
 
 
-void cameraInit()
+bool cameraInitLow()
 {
   logger->log("Camera setup" );
   
@@ -234,7 +263,7 @@ void cameraInit()
   if(psramFound()){
     // pokud je PSRAM, je možné alokovat velký buffer pro velký obrázek
     config.frame_size = FRAMESIZE_UXGA; // ;  FRAMESIZE_SVGA
-    config.jpeg_quality = 13;  //0-63 lower number means higher quality
+    config.jpeg_quality = 12;  //0-63 lower number means higher quality
     config.fb_count = 1;
   } else {
     // není PSRAM? pouze malinký obrázek
@@ -247,13 +276,50 @@ void cameraInit()
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     logger->log("Camera init failed with error 0x%x", err);
-    logger->log("Restartuji!" );
-    blinker.setCode( blinkerErrCamera );
-    // pauza je tu, aby LED dokazala vyblikat chybovy kod
-    delay( 4500 );
-    /* nebudu delat restart takto, protoze by mi to smazalo pripadna namerena data z teplomeru */
-    // ESP.restart();
-    /* misto toho volam funkci pro uspani naprimo, protoze pokud nemam spojeni, tak se neodeslou data z teplomeru a tedy NENI vse odeslano. */
+    return false;
+  }
+
+  return true;
+}
+
+
+void cameraInit()
+{
+  if( cameraInitLow() ) {
+    return;
+  }
+
+  // chyba inicializace
+
+  // nejprve podle https://github.com/espressif/esp32-camera/issues/102#issuecomment-740496660 zkusime reset kamery
+  pinMode( PWDN_GPIO_NUM, OUTPUT );
+  digitalWrite( PWDN_GPIO_NUM, HIGH );
+  delay(1000);
+  digitalWrite( PWDN_GPIO_NUM, LOW );
+  delay(1000);
+
+  if( cameraInitLow() ) {
+    return;
+  }
+
+  // ani po resetu kamera nebezi, je treba propadnout panice
+
+  logger->log("Restartuji!" );
+  blinker.setCode( blinkerErrCamera );
+  // je tu potreba asi 4500 ms pauza je tu, aby LED dokazala vyblikat chybovy kod
+  delay( 4500 );
+
+  // pokud nemam zadna data k odeslani, mohu udelat plny reset, treba se to vzpamatuje:
+  if( ! ra->hasData() ) {
+    logger->log("ESP restart za 30 sec" );
+    // delay, abychom neposilali teplotu kazdych 5 sekund
+    delay( 30000 );
+    logger->log("ESP restart" );
+    delay( 1000 );
+    ESP.restart();
+  } else {
+    /* A pokud mam data, nerestartuji, protoze by mi to smazalo pripadna namerena data z teplomeru.
+        Misto toho volam funkci pro uspani naprimo, protoze pokud nemam spojeni, tak se neodeslou data z teplomeru a tedy NENI vse odeslano. */
     raAllWasSent();
   }
 }
@@ -274,30 +340,74 @@ int cameraPhoto()
 
   sensor_t * s = esp_camera_sensor_get();
 
+  long img_rotate = config.getLong( "cam_rotate", 0 );
+  int hmirror = img_rotate & 1;
+  int vflip = (img_rotate & 2) >> 1;
+
+  int cam_agc_gain = (int)config.getLong( "cam_agc_gain", 6 );
+  if( cam_agc_gain>6 ) cam_agc_gain = 6;
+  if( cam_agc_gain<0 ) cam_agc_gain = 0;
+
+
+  int cam_awb = (int)config.getLong( "cam_awb", -1 );
+  if( cam_awb<-1 || cam_awb>4 ) {
+    cam_awb = -1;
+  }
+  int awb_gain = 0;
+  int awb_mode = 0;
+  if( cam_awb >= 0 ) {
+    awb_gain = 1;
+    awb_mode = cam_awb;
+  }
+
+  logger->log("Camera: hmirror=%d vflip=%d gain=%d awb_gain=%d awb=%d",
+              hmirror,
+              vflip,
+              cam_agc_gain,
+              awb_gain,
+              awb_mode );
+
   s->set_brightness(s, 0);     // -2 to 2
   s->set_contrast(s, 0);       // -2 to 2
   s->set_saturation(s, 0);     // -2 to 2
   s->set_special_effect(s, 0); // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
+
   s->set_whitebal(s, 1);       // 0 = disable , 1 = enable
-  s->set_awb_gain(s, 0);       // 0 = disable , 1 = enable
-  s->set_wb_mode(s, 0);        // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
-  s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable
-  s->set_aec2(s, 1);           // 0 = disable , 1 = enable
-  s->set_ae_level(s, 0);       // -2 to 2
-  s->set_aec_value(s, 300);    // 0 to 1200
-  s->set_gain_ctrl(s, 1);      // 0 = disable , 1 = enable
-  s->set_agc_gain(s, 0);       // 0 to 30
-  s->set_gainceiling(s, (gainceiling_t)0);  // 0 to 6
-  s->set_bpc(s, 0);            // 0 = disable , 1 = enable
-  s->set_wpc(s, 1);            // 0 = disable , 1 = enable
-  s->set_raw_gma(s, 1);        // 0 = disable , 1 = enable
-  s->set_lenc(s, 1);           // 0 = disable , 1 = enable
-  s->set_hmirror(s, 0);        // 0 = disable , 1 = enable
-  s->set_vflip(s, 0);          // 0 = disable , 1 = enable
-  s->set_dcw(s, 1);            // 0 = disable , 1 = enable
+  s->set_awb_gain(s, awb_gain);       // 0 = disable , 1 = enable - kdyz se da 1, je to strasne saturovane
+  s->set_wb_mode(s, awb_mode);        // 0 to 4 - if awb_gain=1 (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+
+  s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable  "AEC sensor" - pokud je 0, pak plati hodnota aec_value
+  s->set_aec2(s, 1);           // 0 = disable , 1 = enable  "AEC DSP"
+  s->set_ae_level(s, 0);       // -2 to 2 (kompenzace expozice)
+  s->set_aec_value(s, 300);    // 0 to 1200 - pokud je vypnuty "AEC senzor", nastavuje se expozice rucne
+
+  s->set_gain_ctrl(s, 1);      // 0 = disable , 1 = enable    - automaticky gain control - zesileni snimace
+  s->set_agc_gain(s, 5 );       // 0 to 30       - fixni hodnota gain, pokud je gain_ctrl=0
+  s->set_gainceiling(s, (gainceiling_t)cam_agc_gain);  // 0 to 6       - maximalni hodnota gain (6 = 128x), pokud je gain_ctrl=1
+
+  s->set_bpc(s, 0);            // 0 = disable , 1 = enable  asi black pixel compensation
+  s->set_wpc(s, 1);            // 0 = disable , 1 = enable  asi white pixel compensation
+  s->set_raw_gma(s, 1);        // 0 = disable , 1 = enable  korekce gama
+  s->set_lenc(s, 1);           // 0 = disable , 1 = enable  korekce vinetace
+  s->set_hmirror(s, hmirror);        // 0 = disable , 1 = enable
+  s->set_vflip(s, vflip);          // 0 = disable , 1 = enable
+  s->set_dcw(s, 0);            // 0 = disable , 1 = enable    "downsize" ???
   s->set_colorbar(s, 0);       // 0 = disable , 1 = enable
-  
+
   camera_fb_t * fb = NULL;
+
+  // nejprve nacteme N fotek, ktere obratem zahodime - ale na nich se probudi AE control a nastavi spravne gain
+  for( int i = 1; i<20; i++ ) {
+    logger->log("treningove foto %d", i );
+    fb = esp_camera_fb_get();
+    if(!fb) {
+      logger->log("Camera capture failed");
+      return 2;
+    }
+    esp_camera_fb_return( fb );
+  }
+
+  // a ted teprve udelame tu potrebnou fotku
   fb = esp_camera_fb_get();
   if(!fb) {
     logger->log("Camera capture failed");

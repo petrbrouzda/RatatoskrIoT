@@ -12,14 +12,29 @@ Data z teploměrů jsou kešována do RTCMEM, takže se ukládají, i když nen�
 
 Pokud není spojení, neukládá fotky na SD kartu.
 
-Aplikace má jednu vzdáleně konfigurovatelnou hodnotu - dobu, na jakou má jít do deep sleepu mezi jednotlivými běhy:
-- Jméno proměnné: **sleep_sec**; jednotka: sekundy
+Aplikace má následující vzdáleně konfigurovatelé hodnoty:
 
-Tedy
->  sleep_sec=180
+* Nastavení aplikace
 
-nastaví interval na 3 minuty.
+  * **sleep_sec** - doba, na jakou má jít do deep sleepu mezi jednotlivými běhy. [sekundy]
+  * **sleep_sec_err** - doba, na jakou má jít do deep sleepu mezi jednotlivými běhy v případě, že došlo k chybě. [sekundy]
 
+* Nastavení kamery:
+
+  * **cam_rotate** - otočení obrázku. Povolené hodnoty 0-3, default 0. 
+  Z hodnoty se načte bit 0 => hmirror, bit 1 => vflip, tedy:
+    * 0 = primy obraz
+    * 1 = zrcadlove otoceny
+    * 2 = vzhuru nohama 
+    * 3 = vzhuru nohama + zrcadlove otoceny
+  * **cam_agc_gain** - maximum automatického gainu. Povolené hodnoty 0-6 (= odpovídá 2x až 128x), default 6.
+  * **cam_awb** - nastavení white balance. Povolené hodnoty -1 až 4, default -1.
+    * -1 = automaticky (awb_gain=0 awb=0)
+    * 0 = automaticky s gainem (awb_gain=1 awb=0) - **pozor, funguje špatně!**
+    * 1 = sunny (awb_gain=1 awb=1)
+    * 2 = cloudy (awb_gain=1 awb=2)
+    * 3 = office = asi zářivky (awb_gain=1 awb=3)
+    * 4 = home = asi žárovky (awb_gain=1 awb=4)
 
 Pokud je pin **14** spojen na GND, je spuštěn konfigurační portál; pokud není zapojen/high, běží aplikace normálně.
 
