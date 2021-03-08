@@ -532,37 +532,45 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
         Logger::log( self::NAME, Logger::DEBUG , "  img: $filename" );
         $count = 0;
 
-        $image = Image::fromFile($filename);
-        $image->resize(self::RESIZE_X, self::RESIZE_Y, Image::STRETCH);
+        try {
 
-        for( $x = 0; $x<self::RESIZE_X; $x++ ) {
-            for( $y = 0; $y<self::RESIZE_Y; $y++ )
-            {
-                $rgb = $image->colorAt($x, $y);
-                $r = ($rgb >> 16) & 0xFF;
-                $g = ($rgb >> 8) & 0xFF;
-                $b = $rgb & 0xFF;
-                if( 
-                    ($r>self::COLOR_THRESHOLD1 || $g>self::COLOR_THRESHOLD1 || $b>self::COLOR_THRESHOLD1 ) 
-                    &&
-                    ( ($r+$g+$b) > self::COLOR_THRESHOLD2 )
-                ) {
-                    $count++;
-                    if( $count > self::COUNT_THRESHOLD ) {
-                        Logger::log( self::NAME,  Logger::DEBUG , "    at $x,$y : $r,$g,$b" );
-                        return 1;
+            $image = Image::fromFile($filename);
+            $image->resize(self::RESIZE_X, self::RESIZE_Y, Image::STRETCH);
+
+            for( $x = 0; $x<self::RESIZE_X; $x++ ) {
+                for( $y = 0; $y<self::RESIZE_Y; $y++ )
+                {
+                    $rgb = $image->colorAt($x, $y);
+                    $r = ($rgb >> 16) & 0xFF;
+                    $g = ($rgb >> 8) & 0xFF;
+                    $b = $rgb & 0xFF;
+                    if( 
+                        ($r>self::COLOR_THRESHOLD1 || $g>self::COLOR_THRESHOLD1 || $b>self::COLOR_THRESHOLD1 ) 
+                        &&
+                        ( ($r+$g+$b) > self::COLOR_THRESHOLD2 )
+                    ) {
+                        $count++;
+                        if( $count > self::COUNT_THRESHOLD ) {
+                            Logger::log( self::NAME,  Logger::DEBUG , "    at $x,$y : $r,$g,$b" );
+                            return 1;
+                        }
                     }
                 }
             }
+
+            if( $count==0 ) {
+                Logger::log( self::NAME, Logger::DEBUG , "    black" );
+                return 0;
+            } else {
+                Logger::log( self::NAME, Logger::DEBUG , "    black+lamp {$count} px" );
+                return 2;
+            }
+
+        } catch (\Nette\Utils\ImageException $e) {
+            Logger::log( self::NAME, Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+            return 1;
         }
 
-        if( $count==0 ) {
-            Logger::log( self::NAME, Logger::DEBUG , "    black" );
-            return 0;
-        } else {
-            Logger::log( self::NAME, Logger::DEBUG , "    black+lamp {$count} px" );
-            return 2;
-        }
     }
 
 
