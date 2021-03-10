@@ -1,5 +1,27 @@
 # Changelog
 
+## 2021-03-10
+
+Server:
+- Vylepšení automatického překreslování galerie fotek:
+  - Nepřekresluje se, pokud není okno prohlížeče viditelné (úspora dat a requestů)
+  - Naopak překreslí se ihned po zobrazení prohlížeče, pokud byla stránka neviditelná po dlouhou dobu (zajištění aktuálnosti)
+  - Nepřekresluje se, pokud uživatel v posledních 15 sec hýbal myší nebo posouval stránkou (aby se nepřekreslovalo, když zrovna něco hledáte)
+- Na stránky grafů přidáno automatické překreslování po 20 minutách; pro překreslování platí stejná pravidla jako pro galerii výše.
+
+----
+## 2021-03-05
+
+MCU: 
+- Vylepšená práce s kamerou u ESP32-CAM:
+  - Pokud dojde k chybě při inicializaci, na chvíli vypne kameře napájení a zkusí to znovu. Výrazně snižuje šanci, že se inicializace kamery nepodaří.
+  - Než sejme fotku, udělá 19 testovacích - tím naučí AE control, které lépe nastaví nasvícení fotky.
+  - Možnost nastavení některých parametrů fotky (otočení, gain, awb) z konfigurace.
+
+Server:
+- Úprava cron tasku, aby nepadal na JPEGu s nevalidním formátem
+
+----
 ## 2021-02-14 verze 5.1.2
 MCU:
 - Ostranění pádu při posílání příliš mnoha záznamů najednou

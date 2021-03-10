@@ -2,6 +2,49 @@
 
 {define content}
 
+<script>
+    var time = new Date().getTime();
+    var lastReload = new Date().getTime();
+    
+    document.body.addEventListener("mousemove", function(e) {
+        time = new Date().getTime();
+    });
+
+    document.body.addEventListener("keypress", function(e) {
+        time = new Date().getTime();
+    });
+
+    function refresh() {
+        if( new Date().getTime() - lastReload >= 300000) {
+            if (new Date().getTime() - time >= 15000 ) {
+                if( ! document.hidden ) {
+                    console.log("automaticky reload");
+                    window.location.reload(true);
+                } else {
+                    console.log("nereloaduji, prohlizec neni videt");
+                }
+            } else {
+                console.log("nereloaduji, byl pohyb mysi");
+            }
+        }
+        setTimeout(refresh, 10000);
+    }
+
+    const onVisibilityChange = () => {
+        console.log("visibility changed - " + ( document.hidden ? "hidden" : "shown" ) );
+        if( ! document.hidden ) {
+            if(new Date().getTime() - lastReload >= 300000 ) {
+                console.log("automaticky reload");
+                window.location.reload(true);
+            }
+        }
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    setTimeout(refresh, 10000);
+</script>
+
     <div class="row px-2 ">
     <a name="dnes"></a>
 {foreach $blobs as $blob }

@@ -118,7 +118,7 @@ final class GalleryPresenter extends BasePresenter
         
         $this->template->device = $device;
         $this->template->loadTime = time();
-        $this->template->refreshTime = $this->template->loadTime + 600;
+        $this->template->refreshTime = $this->template->loadTime + 300;
 
         $response = $this->getHttpResponse();
         $response->setHeader('Pragma', 'public' );
