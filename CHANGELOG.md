@@ -1,5 +1,11 @@
 # Changelog
 
+## 2021-03-14 verze 5.1.3 
+
+MCU:
+- Oprava lightSleep - nově nemění stav WiFi, bluetooth ani ADC.
+
+----
 ## 2021-03-10
 
 Server:

@@ -28,6 +28,7 @@
   {
       Serial.flush();
       
+      /*
       WiFi.disconnect(true);
       WiFi.mode(WIFI_OFF);
       btStop();
@@ -35,11 +36,14 @@
       adc_power_off();
       esp_wifi_stop();
       esp_bt_controller_disable();
+      */
       
       esp_sleep_enable_timer_wakeup( usec );
       esp_light_sleep_start();
       
-      adc_power_on();
+      /* 
+      adc_power_on(); 
+      */
   }
   
   // https://rweather.github.io/arduinolibs/RNG_8cpp_source.html
