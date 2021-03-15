@@ -127,7 +127,7 @@
             {/if}
         </b></div>
         <div class="col-6 col-md-2">
-            {if ($sensor['last_out_value']!=NULL)}
+            {if ($sensor['last_out_value']!==NULL)}
                 {$sensor['last_out_value']} {$sensor['unit']}
 
                 {if ($sensor['warn_max_fired'])} 

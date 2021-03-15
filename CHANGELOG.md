@@ -1,5 +1,11 @@
 # Changelog
 
+## 2021-03-15
+
+Server:
+- V seznamu zařízení a v detailu zařízení se nerozlišovala hodnota senzoru NULL a 0 - tedy pro 0 se ukazovalo "-".
+
+----
 ## 2021-03-14 verze 5.1.3 
 
 MCU:
