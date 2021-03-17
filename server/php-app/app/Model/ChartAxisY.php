@@ -62,10 +62,8 @@ class ChartAxisY
         if( $this->minVal===NULL || ($this->minVal > $series->minVal) ) {
             $this->minVal = $series->minVal;
 
-            if( $this->minVal > 0 ) {
-                $this->minVal = intval( $this->minVal ) - 0.01;
-            } else if( $this->minVal < 0 ) {
-                $this->minVal = intval( $this->minVal ) - 1.01;
+            if( $this->minVal != 0 ) {
+                $this->minVal = $this->minVal  - 0.01;
             }
             //D/ Logger::log( 'webapp', Logger::DEBUG ,  "AxisY: min {$series->minVal} -> {$this->minVal} .. {$this->maxVal}" ); 
         }
@@ -73,16 +71,15 @@ class ChartAxisY
         if( $this->maxVal===NULL || ($this->maxVal < $series->maxVal) ) {
             $this->maxVal = $series->maxVal;
 
-            if( $this->maxVal > 0 ) {
-                $this->maxVal = intval( $this->maxVal ) + 1.01;
-            } else if( $this->maxVal < 0 ) {
-                $this->maxVal = intval( $this->maxVal ) + 0.01;
-            }
+            if( $this->maxVal != 0 ) {
+                $this->maxVal = $this->maxVal + 0.01;
+            } 
             //D/ Logger::log( 'webapp', Logger::DEBUG ,  "AxisY: max {$series->maxVal} -> {$this->minVal} .. {$this->maxVal}" ); 
         }
 
-        if( ($this->maxVal - $this->minVal) < 1 ) {
-            $this->maxVal += 1;
+        if( ($this->maxVal - $this->minVal) < 0.2 ) {
+             $this->maxVal += 0.1;
+             $this->minVal -= 0.1;
         }
 
         //D/ Logger::log( 'webapp', Logger::DEBUG ,  "AxisY: {$this->minVal} .. {$this->maxVal}" ); 

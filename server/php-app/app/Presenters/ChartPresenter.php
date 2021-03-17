@@ -353,6 +353,34 @@ final class ChartPresenter extends BasePresenter
         
     }
 
+
+    /**
+     * V tento okamzik nepocitame s osou Y mensi nez 0.1
+     * Viz implementace ChartAxisY->processSeries()
+     */
+    private function computeTickerSize( $maxVal, $minVal, $numTickers) 
+    {
+        $tickerSize = intval( ($maxVal - $minVal) / $numTickers );
+        if( $tickerSize == 0 ) {
+            $tickerSizeFloat = ($maxVal - $minVal) / $numTickers;
+            if( $tickerSizeFloat <= 0.05 ) {
+                $tickerSize = 0.025;
+            } else if( $tickerSizeFloat < 0.1 ) {
+                $tickerSize = 0.05;
+            } else if( $tickerSizeFloat < 0.15 ) {
+                $tickerSize = 0.1;
+            } else if( $tickerSizeFloat < 0.3 ) { 
+                $tickerSize = 0.25;
+            } else if( $tickerSizeFloat <= 0.5 ) { 
+                $tickerSize = 0.5;
+            } else {
+                $tickerSize = 1;
+            }
+        }
+        return $tickerSize;
+    }
+
+
     private function decorateAxisY1( ) 
     {
         $carkaPresah = 3;
@@ -375,28 +403,15 @@ final class ChartPresenter extends BasePresenter
         $minTickerSize = 30;
         $numTickers = intval( $this->chart->sizeY / $minTickerSize );
         // velikost tickeru 
-        // rozsah osy Y nikdy nemuze byt mensi nez 2, takze tickery mensi nez 0.1 nedavaji smysl - viz implementace chartAxisY->processSeries() 
-        $tickerSize = intval( ($this->axisY1->maxVal - $this->axisY1->minVal) / $numTickers );
-        if( $tickerSize == 0 ) {
-            $tickerSizeFloat = ($this->axisY1->maxVal - $this->axisY1->minVal) / $numTickers;
-            if( $tickerSizeFloat < 0.15 ) {
-                $tickerSize = 0.1;
-            } else if( $tickerSizeFloat < 0.3 ) { 
-                $tickerSize = 0.25;
-            } else if( $tickerSizeFloat <= 0.5 ) { 
-                $tickerSize = 0.5;
-            } else {
-                $tickerSize = 1;
-            }
-        }
-        $tickerVal = intval($this->axisY1->minVal + (($this->axisY1->minVal > 0) ? 1 : 0 ) );
+        $tickerSize = $this->computeTickerSize( $this->axisY1->maxVal, $this->axisY1->minVal, $numTickers );
+        $tickerVal = intval($this->axisY1->minVal - (($this->axisY1->minVal < 0) ? 1 : 0 ) );
         
-        while( $tickerVal < $this->axisY1->maxVal )
+        while( $tickerVal <= $this->axisY1->maxVal )
         {
             $y = $this->axisY1->getPosY($tickerVal);
 
             // kolem hodnoty nuly nevypiseme hodnotu
-            if( $y < ($y0-5) || $y > ($y0+5) ) {
+            if( ($y < ($y0-5) || $y > ($y0+5)) && ($tickerVal >= $this->axisY1->minVal) ) {
                 $this->image->line(
                     $this->chart->marginXL - $carkaPresah , $y,
                     $this->chart->marginXL + $carkaPresah , $y,
@@ -433,32 +448,21 @@ final class ChartPresenter extends BasePresenter
         $minTickerSize = 30;
         $numTickers = intval( $this->chart->sizeY / $minTickerSize );
         // velikost tickeru 
-        // rozsah osy Y nikdy nemuze byt mensi nez 2, takze tickery mensi nez 0.1 nedavaji smysl - viz implementace chartAxisY->processSeries() 
-        $tickerSize = intval( ($this->axisY2->maxVal - $this->axisY2->minVal) / $numTickers );
-        if( $tickerSize == 0 ) {
-            $tickerSizeFloat = ($this->axisY1->maxVal - $this->axisY1->minVal) / $numTickers;
-            if( $tickerSizeFloat < 0.15 ) {
-                $tickerSize = 0.1;
-            } else if( $tickerSizeFloat < 0.3 ) { 
-                $tickerSize = 0.25;
-            } else if( $tickerSizeFloat <= 0.5 ) { 
-                $tickerSize = 0.5;
-            } else {
-                $tickerSize = 1;
-            }
-        }
-        $tickerVal = intval($this->axisY2->minVal + (($this->axisY2->minVal > 0) ? 1 : 0 ) );
+        $tickerSize = $this->computeTickerSize( $this->axisY2->maxVal, $this->axisY2->minVal, $numTickers );
+        $tickerVal = intval($this->axisY1->minVal - (($this->axisY1->minVal < 0) ? 1 : 0 ) );
         
-        while( $tickerVal < $this->axisY2->maxVal )
+        while( $tickerVal <= $this->axisY2->maxVal )
         {
-            $y = $this->axisY2->getPosY($tickerVal);
-            $this->image->line(
-                $this->chart->marginXL + $this->chart->sizeX - $carkaPresah , $y,
-                $this->chart->marginXL + $this->chart->sizeX + $carkaPresah , $y,
-                Image::rgb(150,150,150)
-            );          
+            if( $tickerVal >= $this->axisY2->minVal ) {
+                $y = $this->axisY2->getPosY($tickerVal);
+                $this->image->line(
+                    $this->chart->marginXL + $this->chart->sizeX - $carkaPresah , $y,
+                    $this->chart->marginXL + $this->chart->sizeX + $carkaPresah , $y,
+                    Image::rgb(150,150,150)
+                );          
 
-            $this->popiskaY( $y, false, $tickerVal );
+                $this->popiskaY( $y, false, $tickerVal );
+            }
 
             $tickerVal += $tickerSize;
         }
