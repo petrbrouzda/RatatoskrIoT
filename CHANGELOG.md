@@ -1,5 +1,12 @@
 # Changelog
 
+# 2021-03-17
+
+Server:
+- Lepší vykreslení grafů - lepší nastavení min/max pro malé rozsahy hodnot; doplnění intervalu tickerů na ose Y po 0.1/0.25/0.5; odstranění přepisu nuly a hodnoty u levé osy Y.
+- Lepší popiska u priority u editace datové řady v grafu.
+
+----
 ## 2021-03-15
 
 Server:

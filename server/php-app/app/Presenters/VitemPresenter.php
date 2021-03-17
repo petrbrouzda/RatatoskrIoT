@@ -91,7 +91,7 @@ final class VitemPresenter extends BaseAdminPresenter
             ->setRequired();
 
         $form->addInteger('vorder', 'Pořadí:')
-            ->setOption('description', 'Pořadí v menu - pokud je více datových řad, řadí se podle této hodnoty. Vyšší číslo = níže.'  )
+            ->setOption('description', 'Pořadí vykreslení. Vykresluje se od nejvyšších čísel k nejnižším = řada s nejnižším číslem přepíše ty předešlé.'  )
             ->setDefaultValue(10)
             ->setRequired();
 

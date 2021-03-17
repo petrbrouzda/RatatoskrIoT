@@ -9,6 +9,7 @@ use Tracy\Debugger;
 
 use \App\Model\SensorDataSeries;
 use \App\Model\ChartSeries;
+use \App\Services\Logger;
 
 class ChartAxisY
 {
@@ -62,26 +63,29 @@ class ChartAxisY
             $this->minVal = $series->minVal;
 
             if( $this->minVal > 0 ) {
-                $this->minVal *= 0.995;
-            } else {
-                $this->minVal *= 1.005;
+                $this->minVal = intval( $this->minVal ) - 0.01;
+            } else if( $this->minVal < 0 ) {
+                $this->minVal = intval( $this->minVal ) - 1.01;
             }
+            //D/ Logger::log( 'webapp', Logger::DEBUG ,  "AxisY: min {$series->minVal} -> {$this->minVal} .. {$this->maxVal}" ); 
         }
         
         if( $this->maxVal===NULL || ($this->maxVal < $series->maxVal) ) {
             $this->maxVal = $series->maxVal;
 
             if( $this->maxVal > 0 ) {
-                $this->maxVal *= 1.005;
-            } else {
-                $this->maxVal *= 0.995;
+                $this->maxVal = intval( $this->maxVal ) + 1.01;
+            } else if( $this->maxVal < 0 ) {
+                $this->maxVal = intval( $this->maxVal ) + 0.01;
             }
+            //D/ Logger::log( 'webapp', Logger::DEBUG ,  "AxisY: max {$series->maxVal} -> {$this->minVal} .. {$this->maxVal}" ); 
         }
 
         if( ($this->maxVal - $this->minVal) < 1 ) {
             $this->maxVal += 1;
-            $this->minVal -= 1;
         }
+
+        //D/ Logger::log( 'webapp', Logger::DEBUG ,  "AxisY: {$this->minVal} .. {$this->maxVal}" ); 
 
         $this->computeFactor();
     }
