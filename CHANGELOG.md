@@ -1,9 +1,20 @@
 # Changelog
 
+# 2021-03-18
+
+Server:
+- Lepší formátování popisek osy Y: 
+  - Použití desetinné čárky místo tečky + mezera jako oddělovač tisícovek.
+  - Fixní počet desetinných míst podle odstupu popisek.
+
+----
 # 2021-03-17
 
 Server:
-- Lepší vykreslení grafů - lepší nastavení min/max pro malé rozsahy hodnot; doplnění intervalu tickerů na ose Y po 0.1/0.25/0.5; odstranění přepisu nuly a hodnoty u levé osy Y.
+- Lepší vykreslení grafů: 
+  - Lepší nastavení min/max pro malé rozsahy hodnot. 
+  - Doplnění intervalu tickerů na ose Y po 0.1/0.25/0.5.
+  - Ddstranění přepisu nuly a hodnoty u levé osy Y.
 - Lepší popiska u priority u editace datové řady v grafu.
 
 ----

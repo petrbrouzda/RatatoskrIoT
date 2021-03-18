@@ -380,6 +380,19 @@ final class ChartPresenter extends BasePresenter
         return $tickerSize;
     }
 
+    private function getDecimals( $tickerSize )
+    {
+        $decimals = 0;
+        if( $tickerSize < 0.05 ) {
+            $decimals = 3;
+        } else if( $tickerSize < 0.1 ) {
+            $decimals = 2;
+        }  else if( $tickerSize < 1 ) {
+            $decimals = 1;
+        }
+        return $decimals;
+    }
+
 
     private function decorateAxisY1( ) 
     {
@@ -404,6 +417,7 @@ final class ChartPresenter extends BasePresenter
         $numTickers = intval( $this->chart->sizeY / $minTickerSize );
         // velikost tickeru 
         $tickerSize = $this->computeTickerSize( $this->axisY1->maxVal, $this->axisY1->minVal, $numTickers );
+        $decimals = $this->getDecimals( $tickerSize );
         $tickerVal = intval($this->axisY1->minVal - (($this->axisY1->minVal < 0) ? 1 : 0 ) );
         
         while( $tickerVal <= $this->axisY1->maxVal )
@@ -417,7 +431,9 @@ final class ChartPresenter extends BasePresenter
                     $this->chart->marginXL + $carkaPresah , $y,
                     Image::rgb(150,150,150)
                 );          
-                $this->popiskaY( $y, true, $tickerVal );
+                $this->popiskaY( $y, true, 
+                    number_format ( $tickerVal  , $decimals , "," , " " ) 
+                );
 
                 if( $tickerVal!=0 ) {
                     // vodorovna cara
@@ -449,6 +465,7 @@ final class ChartPresenter extends BasePresenter
         $numTickers = intval( $this->chart->sizeY / $minTickerSize );
         // velikost tickeru 
         $tickerSize = $this->computeTickerSize( $this->axisY2->maxVal, $this->axisY2->minVal, $numTickers );
+        $decimals = $this->getDecimals( $tickerSize );
         $tickerVal = intval($this->axisY1->minVal - (($this->axisY1->minVal < 0) ? 1 : 0 ) );
         
         while( $tickerVal <= $this->axisY2->maxVal )
@@ -461,7 +478,9 @@ final class ChartPresenter extends BasePresenter
                     Image::rgb(150,150,150)
                 );          
 
-                $this->popiskaY( $y, false, $tickerVal );
+                $this->popiskaY( $y, false, 
+                    number_format ( $tickerVal  , $decimals , "," , " " ) 
+                );
             }
 
             $tickerVal += $tickerSize;
