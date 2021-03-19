@@ -385,7 +385,7 @@ final class ChartPresenter extends BasePresenter
         $decimals = 0;
         if( $tickerSize < 0.05 ) {
             $decimals = 3;
-        } else if( $tickerSize < 0.1 ) {
+        } else if( $tickerSize < 0.4 ) {
             $decimals = 2;
         }  else if( $tickerSize < 1 ) {
             $decimals = 1;
