@@ -1,5 +1,11 @@
 # Changelog
 
+# 2021-03-19
+
+Server:
+- Formátování popisek osy Y: pro interval tickeru na ose Y 0.25 se zaokrouhlovaly čísla na jedno desetinné místo = 0.3
+
+----
 # 2021-03-18
 
 Server:
