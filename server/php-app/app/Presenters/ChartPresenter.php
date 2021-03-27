@@ -360,6 +360,7 @@ final class ChartPresenter extends BasePresenter
      */
     private function computeTickerSize( $maxVal, $minVal, $numTickers) 
     {
+        //D/ Logger::log( 'webapp', Logger::DEBUG ,  "ticker <- $maxVal, $minVal, $numTickers" ); 
         $tickerSize = intval( ($maxVal - $minVal) / $numTickers );
         if( $tickerSize == 0 ) {
             $tickerSizeFloat = ($maxVal - $minVal) / $numTickers;
@@ -377,11 +378,13 @@ final class ChartPresenter extends BasePresenter
                 $tickerSize = 1;
             }
         }
+        //D/ Logger::log( 'webapp', Logger::DEBUG ,  "ticker -> $tickerSize" ); 
         return $tickerSize;
     }
 
     private function getDecimals( $tickerSize )
     {
+        //D/ Logger::log( 'webapp', Logger::DEBUG ,  "decimals <- $tickerSize" ); 
         $decimals = 0;
         if( $tickerSize < 0.05 ) {
             $decimals = 3;
@@ -390,6 +393,7 @@ final class ChartPresenter extends BasePresenter
         }  else if( $tickerSize < 1 ) {
             $decimals = 1;
         }
+        //D/ Logger::log( 'webapp', Logger::DEBUG ,  "decimals -> $decimals" ); 
         return $decimals;
     }
 
@@ -466,7 +470,7 @@ final class ChartPresenter extends BasePresenter
         // velikost tickeru 
         $tickerSize = $this->computeTickerSize( $this->axisY2->maxVal, $this->axisY2->minVal, $numTickers );
         $decimals = $this->getDecimals( $tickerSize );
-        $tickerVal = intval($this->axisY1->minVal - (($this->axisY1->minVal < 0) ? 1 : 0 ) );
+        $tickerVal = intval($this->axisY2->minVal - (($this->axisY2->minVal < 0) ? 1 : 0 ) );
         
         while( $tickerVal <= $this->axisY2->maxVal )
         {
@@ -538,7 +542,7 @@ final class ChartPresenter extends BasePresenter
         }
 
         $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
-        Logger::log( 'webapp', Logger::DEBUG ,  "Chart: {$src}, {$intervalLenDays} d, t={$time} ms" ); 
+        Logger::log( 'webapp', Logger::DEBUG ,  "[${_SERVER['REMOTE_ADDR']}] Chart: {$src}, {$intervalLenDays} d, t={$time} ms" ); 
         
         $this->image->send(Image::PNG);
 
@@ -852,7 +856,7 @@ final class ChartPresenter extends BasePresenter
         $response->setExpiration('1 min');   
         
         $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
-        Logger::log( 'webapp', Logger::DEBUG ,  "Coverage: ch={$id}, t={$time} ms" ); 
+        Logger::log( 'webapp', Logger::DEBUG ,  "[${_SERVER['REMOTE_ADDR']}] Coverage: ch={$id}, t={$time} ms" ); 
         
         $this->image->send(Image::PNG);
     }    
@@ -1088,7 +1092,7 @@ final class ChartPresenter extends BasePresenter
         $response->setExpiration('1 min');   
         
         $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
-        Logger::log( 'webapp', Logger::DEBUG ,  "Avgtemp: ch={$id} rows={$this->dbRows} t={$time} ms" ); 
+        Logger::log( 'webapp', Logger::DEBUG ,  "[${_SERVER['REMOTE_ADDR']}] Avgtemp: ch={$id} rows={$this->dbRows} t={$time} ms" ); 
         
         $this->image->send(Image::PNG);
     } 
@@ -1239,7 +1243,7 @@ final class ChartPresenter extends BasePresenter
         $response->setExpiration('1 min');  
         
         $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
-        Logger::log( 'webapp', Logger::DEBUG ,  "Avgyears: ch={$id} rows={$this->dbRows} t={$time} ms" ); 
+        Logger::log( 'webapp', Logger::DEBUG ,  "[${_SERVER['REMOTE_ADDR']}] Avgyears: ch={$id} rows={$this->dbRows} t={$time} ms" ); 
         
         $this->image->send(Image::PNG);
     } 

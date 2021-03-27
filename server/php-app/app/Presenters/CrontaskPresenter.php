@@ -518,8 +518,8 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
 
     const RESIZE_X = 150;
     const RESIZE_Y = 150;
-    const COLOR_THRESHOLD1 = 25;
-    const COLOR_THRESHOLD2 = 90;
+    const COLOR_THRESHOLD1 = 70;
+    const COLOR_THRESHOLD2 = 150;
     const COUNT_THRESHOLD = 6;
 
     /**

@@ -1,5 +1,11 @@
 # Changelog
 
+# 2021-03-27
+
+Server:
+- Oprava vykreslování pravé osy Y, pokud má výrazně menší rozsah než levá
+
+----
 # 2021-03-19
 
 Server:
