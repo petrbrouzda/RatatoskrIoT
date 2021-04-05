@@ -13,14 +13,21 @@ Co je v repository?
 - V adresáři [MCU](MCU) jsou ukázkové aplikace pro ESP32 a ESP8266.
 - V adresáři [server](server) je serverová aplikace.
 
-## Verze 5.1.1 (2021-02-12)
 
-**Velká změna:** Na pobídnutí @danmaneu změněn způsob přihlašování tak, že používá ECDH a je výrazně odolnější proti všem formám útoku.
-Aktuální verze aplikace podporuje jak přihlášení původní metodou (RA 4.3) tak aktuální (5.0); v další verzi aplikace bude podpora pro původní přihlašovací kanál zrušena.
+---
+## Informace o změnách
 
-**Při aktualizaci** z 4.* na 5.0 je potřeba provést změnu databáze - změnový skript server/sql/20210212_diff_4.3_5.0.sql .
+Detailní informace o změnách najdete  v souboru [CHANGELOG.md](CHANGELOG.md)
 
-Detailnější informaci ke změnám najdete v souboru [CHANGELOG.md](CHANGELOG.md)
+### 2021-04-05
+
+Server:
+- Nové typy grafů 
+  - sloupcový https://lovecka.info/ra/chart/view/LoveckaJablonec/54/?dateFrom=2021-04-02&lenDays=1&plus=1 
+  - čárový https://lovecka.info/ra/chart/view/LoveckaJablonec/50/?dateFrom=2021-04-04&lenDays=3&minus=1
+- V grafech je tenkou zelenou čárou vyznačen aktuální čas, pokud graf obsahuje dnešek.
+
+
 
 
 

@@ -77,9 +77,9 @@ class ChartAxisY
             //D/ Logger::log( 'webapp', Logger::DEBUG ,  "AxisY: max {$series->maxVal} -> {$this->minVal} .. {$this->maxVal}" ); 
         }
 
-        if( ($this->maxVal - $this->minVal) < 0.2 ) {
-             $this->maxVal += 0.1;
-             $this->minVal -= 0.1;
+        $rozsah = $this->maxVal - $this->minVal;
+        if( $rozsah < 0.1 ) {
+             $this->maxVal += (0.15 - $rozsah);
         }
 
         //D/ Logger::log( 'webapp', Logger::DEBUG ,  "AxisY: {$this->minVal} .. {$this->maxVal}" ); 

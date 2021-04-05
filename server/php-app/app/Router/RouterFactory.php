@@ -21,6 +21,7 @@ final class RouterFactory
 		$router->addRoute('chart/sensorchart/show/<id>/', 'Chart:sensorchart');
 		$router->addRoute('chart/chart/<token>/<id>/', 'Chart:chart');
 		$router->addRoute('chart/bar/<token>/<id>/', 'Chart:bar');
+		$router->addRoute('chart/line/<token>/<id>/', 'Chart:line');
 		$router->addRoute('chart/coverage/<token>/<id>/', 'Chart:coverage');
 		$router->addRoute('chart/avgtemp/<token>/<id>/', 'Chart:avgtemp');
 		$router->addRoute('chart/avgyears0/<token>/<id>/', 'Chart:avgyears0');

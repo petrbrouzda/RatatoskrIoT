@@ -100,7 +100,9 @@ final class ViewPresenter extends BaseAdminPresenter
             'coverage' => 'Zobrazení pokrytí dat',
             'avgtemp' => 'Průměrná teplota',
             'avgyears0' => 'Porovnání průměrné teploty',
-            'avgyears1' => 'Porovnání minimální teploty'
+            'avgyears1' => 'Porovnání minimální teploty',
+            'line' => 'Vodorovné čáry - vhodné pro směr větru',
+            'bar' => 'Sloupcový graf - vhodné pro srážky',
         ];
 
         $form->addSelect('render', 'Vykreslovací stroj:', $renders)

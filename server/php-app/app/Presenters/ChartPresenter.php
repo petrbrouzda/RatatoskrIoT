@@ -129,6 +129,120 @@ final class ChartPresenter extends BasePresenter
     }
 
 
+    /**
+     * vykresleni serie v modu 'vorodovne cary'
+     */
+    private function drawSeriesLine( ChartAxisY $axisY, \App\Model\ChartSeries $chartSerie, $poradi )
+    {
+        /** \App\Model\SensorDataSeries */
+        $serie = $chartSerie->data;
+        // Debugger::log( $serie->toString( TRUE ) );
+
+        $color = $chartSerie->color->getColor();
+        $nr = $chartSerie->nr;
+
+        $prevPointX = NULL;
+        $prevPointY = NULL;
+
+        foreach( $serie->points as $point ) {
+
+            $x = $this->axisX->getPosX( $point->relativeTime );
+            $y = $axisY->getPosY( $point->value );
+
+            if( $prevPointX!=NULL && $point->connectedFromPrevious ) {
+                // spojime carou s predeslym bodem
+                $this->image->line(
+                    $prevPointX, $prevPointY, 
+                    $x, $prevPointY, 
+                    $color );
+                $this->image->line(
+                    $prevPointX, $prevPointY-1, 
+                    $x, $prevPointY-1, 
+                    $color );
+                $this->image->line(
+                    $prevPointX, $prevPointY+1, 
+                    $x, $prevPointY+1, 
+                    $color );
+            } else {
+                // jen bod by byl neviditelny
+                $this->image->line(
+                    $x-1, $y,
+                    $x+1, $y, 
+                    $color );
+                $this->image->line(
+                    $x, $y-1,
+                    $x, $y+1, 
+                    $color );
+            }
+
+            // udelame NAD grafem oznaceni, kde jsou data
+            $prevPointX = $x;
+            $prevPointY = $y;
+
+            $y2 = $this->chart->marginYT - 5 - 4*$poradi;
+            $this->image->line(
+                $x-1, $y2,
+                $x+1, $y2, 
+                $color );
+                
+        }
+    }
+
+
+    /**
+     * vykresleni serie v modu 'bargrafu'
+     */
+    private function drawSeriesBar( ChartAxisY $axisY, \App\Model\ChartSeries $chartSerie, $poradi )
+    {
+        /** \App\Model\SensorDataSeries */
+        $serie = $chartSerie->data;
+        // Debugger::log( $serie->toString( TRUE ) );
+
+        $color = $chartSerie->color->getColor();
+        $nr = $chartSerie->nr;
+
+        // ziskame krok v ose X
+        $krokX = 10000;
+        $prevX = -1;
+        foreach( $serie->points as $point ) {
+            $x = $this->axisX->getPosX( $point->relativeTime );
+            if( $prevX == -1 ) {
+                $prevX = $x;
+            } else {
+                if( $x - $prevX < $krokX ) {
+                    $krokX = $x - $prevX;
+                }
+            }
+        }
+
+        $sirkaXpul = intval($krokX/4);
+        if( $sirkaXpul>100 ) $sirkaXpul=100;
+        $y0 = $axisY->getPosY( 0 );
+
+        foreach( $serie->points as $point ) {
+
+            $x = $this->axisX->getPosX( $point->relativeTime );
+            $y = $axisY->getPosY( $point->value );
+
+            $this->image->filledRectangle(
+                $x - $sirkaXpul, $y0, 
+                $x + $sirkaXpul, $y, 
+                $color); 
+
+            // udelame NAD grafem oznaceni, kde jsou data
+            $prevPointX = $x;
+            $prevPointY = $y;
+
+            $y2 = $this->chart->marginYT - 5 - 4*$poradi;
+            $this->image->line(
+                $x-1, $y2,
+                $x+1, $y2, 
+                $color );
+                
+        }
+    }
+
+
 
     private function createChart()
     {
@@ -236,7 +350,6 @@ final class ChartPresenter extends BasePresenter
 
             $curPos->modify( $timeSkip );
         }
-        
     }
 
 
@@ -323,6 +436,19 @@ final class ChartPresenter extends BasePresenter
             if( $tickerSizeSec < 80000 ) $tickerSizeSec = 80000;
             $this->decorateAxisXdays( $tickerSizeSec, '+1 day' );
         }
+
+        $end = $this->chart->dateTimeFrom->modifyClone( '+' . $this->axisX->intervalLenDays . ' day' )->getTimestamp() ;
+        $start = $this->chart->dateTimeFrom->getTimestamp();
+        if( time()>$start && time()<=$end ) {
+            // graf ukazuje "nyni", nakreslime svislou caru
+            $x = $this->axisX->getPosX( time() - $start );
+            $this->image->line(
+                $x, $this->chart->marginYT,
+                $x, $this->chart->marginYT + $this->chart->sizeY,
+                Image::rgb(189,220,168) 
+            );
+        }
+
     }
 
     private function popiskaY( $y, $levaOsa, $text, $bold = FALSE )
@@ -498,8 +624,13 @@ final class ChartPresenter extends BasePresenter
 
     /**
      * Vykresluje graf zadany v \App\Model\Chart
+     * 
+     * mode:
+     * 0 - bezny carovy graf
+     * 1 - jen vodorovne linky (smer vetru)
+     * 2 - bargraf
      */
-    private function drawChart( $src, $intervalLenDays )
+    private function drawChart( $src, $intervalLenDays, $mode )
     {
         // spocteme rozsah jednotlivych os
         $this->axisY1 = ChartAxisY::prepareAxisY( $this->chart->series1, $this->chart->sizeY, $this->chart->marginYT );
@@ -531,14 +662,26 @@ final class ChartPresenter extends BasePresenter
         for($i = count($this->chart->series2) - 1; $i >= 0; $i--)
         {
             $serie = $this->chart->series2[$i];
-            $this->drawSeries( $this->axisY2, $serie, $poradi++ );
+            if( $mode==0 ) {
+                $this->drawSeries( $this->axisY2, $serie, $poradi++ );
+            } else if( $mode==1 ) {
+                $this->drawSeriesLine( $this->axisY2, $serie, $poradi++ );
+            } else if( $mode==2 ) {
+                $this->drawSeriesBar( $this->axisY2, $serie, $poradi++ );
+            }
         }
         
         // a pak to prepiseme levou
         for($i = count($this->chart->series1) - 1; $i >= 0; $i--)
         {
             $serie = $this->chart->series1[$i];
-            $this->drawSeries( $this->axisY1, $serie, $poradi++ );
+            if( $mode==0 ) {
+                $this->drawSeries( $this->axisY1, $serie, $poradi++ );
+            } else if( $mode==1 ) {
+                $this->drawSeriesLine( $this->axisY1, $serie, $poradi++ );
+            } else if( $mode==2 ) {
+                $this->drawSeriesBar( $this->axisY1, $serie, $poradi++ );
+            }
         }
 
         $time = intval( ( microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"] ) * 1000.0 );
@@ -650,10 +793,15 @@ final class ChartPresenter extends BasePresenter
         }
     }
 
+
     /**
-     * Generuje obrazek - carovy graf
+     * Generuje obrazek.
+     * mode:
+     * 0 = carovy graf
+     * 1 = jen vodorovne cary
+     * 2 = sloupcovy graf
      */
-    public function renderChart( $id, $token, $dateFrom, $lenDays, $altYear=NULL )
+    public function intRenderChart( $id, $token, $dateFrom, $lenDays, $altYear=NULL, $mode )
     {
         $view = $this->datasource->getView( $id, $token );
         
@@ -674,7 +822,32 @@ final class ChartPresenter extends BasePresenter
         $response->setHeader('Cache-Control', 'no-cache');
         $response->setExpiration('1 min'); 
 
-        $this->drawChart( "ch={$id}", $lenDays );
+        $this->drawChart( "ch={$id}", $lenDays, $mode );
+    }
+
+    /**
+     * Generuje obrazek - carovy graf
+     */
+    public function renderChart( $id, $token, $dateFrom, $lenDays, $altYear=NULL )
+    {
+        $this->intRenderChart( $id, $token, $dateFrom, $lenDays, $altYear, 0 );
+    }
+
+    /**
+     * Generuje obrazek - graf pro smer vetru
+     */
+    public function renderLine( $id, $token, $dateFrom, $lenDays, $altYear=NULL )
+    {
+        $this->intRenderChart( $id, $token, $dateFrom, $lenDays, $altYear, 1 );
+    }
+
+
+    /**
+     * Generuje obrazek - sloupcovy graf
+     */
+    public function renderBar( $id, $token, $dateFrom, $lenDays, $altYear=NULL )
+    {
+        $this->intRenderChart( $id, $token, $dateFrom, $lenDays, $altYear, 2 );
     }
 
 
