@@ -41,7 +41,7 @@ class ChartAxisY
     private $factor;
 
 
-    private function computeFactor() {
+    public function computeFactor() {
         $valueDelta = $this->maxVal - $this->minVal;
         if( $valueDelta==0 ) {
             $valueDelta = 1;

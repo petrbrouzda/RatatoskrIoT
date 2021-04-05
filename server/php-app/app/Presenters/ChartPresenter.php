@@ -641,6 +641,18 @@ final class ChartPresenter extends BasePresenter
             $this->chart->marginYT 
         );
 
+        // bargraf nema spodek plovouci, zacina od nuly
+        if( $mode==2 ) {
+            if( $this->axisY1->minVal > 0 ) { 
+                $this->axisY1->minVal=0; 
+                $this->axisY1->computeFactor();
+            }
+            if( $this->axisY2->minVal > 0 ) { 
+                $this->axisY2->minVal=0; 
+                $this->axisY2->computeFactor();
+            }
+        }
+
         $this->chart->changeBorders( $this->axisY1, $this->axisY2 );
 
         $this->createChart();
