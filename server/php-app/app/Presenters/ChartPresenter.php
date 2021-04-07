@@ -1466,7 +1466,7 @@ final class ChartPresenter extends BasePresenter
         $response->setHeader('Cache-Control', 'no-cache');
         $response->setExpiration('1 min'); 
 
-        $this->drawChart( "s={$id}", $lenDays );
+        $this->drawChart( "s={$id}", $lenDays, 0 );
     }
 
 
