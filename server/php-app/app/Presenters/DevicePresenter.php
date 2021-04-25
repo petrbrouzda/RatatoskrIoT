@@ -250,10 +250,10 @@ final class DevicePresenter extends BaseAdminPresenter
             $this->template->uptime = $this->secondsToTime( $post['uptime'] );
         }
 
+        $lastLoginTs = (DateTime::from( $post['last_login']))->getTimestamp();
         $post['problem_mark'] = false;
         if( $post['last_bad_login'] != NULL ) {
             if( $post['last_login'] != NULL ) {
-                $lastLoginTs = (DateTime::from( $post['last_login']))->getTimestamp();
                 $lastErrLoginTs = (DateTime::from(  $post['last_bad_login']))->getTimestamp();
                 if( $lastErrLoginTs >  $lastLoginTs ) {
                     $post['problem_mark'] = true;
@@ -279,6 +279,8 @@ final class DevicePresenter extends BaseAdminPresenter
 
         $this->template->sensors = $this->datasource->getDeviceSensors( $id );
 
+        $lastTime = $lastLoginTs;
+
         foreach ($this->template->sensors as $sensor) {
             $sensor['warningIcon'] = 0;
             if( $sensor['last_data_time'] ) {
@@ -290,8 +292,14 @@ final class DevicePresenter extends BaseAdminPresenter
                         $sensor['warningIcon'] = 2;
                     }
                 } 
+                if( !$lastTime || ($utime > $lastTime) ) {
+                    $lastTime = $utime;
+                } 
             }
         }
+        $this->template->lastComm = $lastTime;
+
+        $this->template->updates = $this->datasource->getOtaUpdates( $id );
 
         $url = new Url( $this->getHttpRequest()->getUrl()->getBaseUrl() );
         $this->template->jsonUrl = $url->getAbsoluteUrl() . "json/data/{$post['json_token']}/{$id}/";
@@ -494,5 +502,145 @@ final class DevicePresenter extends BaseAdminPresenter
         }
     }    
     
+
+    //----------------------------------------------------------------------
+
+
+
+    public function actionUpdate(int $id): void
+    {
+        $this->checkUserRole( 'user' );
+        $this->populateTemplate( 0 );
+        $this->template->path = '../';
+        $this->template->id = $id;
+
+        $post = $this->datasource->getDevice( $id );
+        if (!$post) {
+            $this->error('Zařízení nebylo nalezeno');
+        }
+        $post = $post->toArray();
+        $this->checkAcces( $post['user_id'] );
+
+        $this->template->name = $post['name'];
+
+        $arr = Strings::split($post['name'], '~:~');
+        $post['name'] = $arr[1];
+
+        $warningOTA = true;
+        $warningVer = true;
+        $appName = "";
+
+        // rozebrat $post['app_name'] a udelat z nej post['fromVersion']
+        if( substr($post['app_name'], 0, 1)=='[' ) {
+            $pos = strpos($post['app_name'], ']' );
+            if( $pos!==false ) {
+                $post['fromVersion'] = substr($post['app_name'], 1, $pos-1 );
+                $warningVer = false;
+            }
+        }
+        // pokud v $post['app_name'] neni 'OTA Y', dat varovani, ze aplikace to asi nepodporuje
+        if( false !== strpos($post['app_name'], "; OTA Y" ) ) {
+            $warningOTA = false;
+        }
+        $this->template->warningOTA = $warningOTA;
+        $this->template->warningVer = $warningVer;
+
+        $this['updateForm']->setDefaults($post);
+    }
+
+    protected function createComponentUpdateForm(): Form
+    {
+        $form = new Form;
+        $form->addProtection();
+
+        $form->addText('fromVersion', 'ID verze aplikace, ze které se aktualizuje:')
+            ->setRequired()
+            ->addRule(Form::PATTERN, 'Jen písmena, čísla a znaky .-_', '([0-9A-Za-z_\.\-]+)')
+            ->setOption('description', 'ID stávající verze aplikace; je uvedeno v hranatých závorkách na začátku jména aplikace.'  )
+            ->setAttribute('size', 50);
+
+        $form->addUpload('image', 'Soubor s aktualizací:')
+            ->setRequired();
+            
+        $form->addSubmit('send', 'Uložit')
+            ->setHtmlAttribute('onclick', 'if( Nette.validateForm(this.form) ) { this.form.submit(); this.disabled=true; } return false;');
+            
+        $form->onSuccess[] = [$this, 'updateFormSucceeded'];
+
+        $this->makeBootstrap4( $form );
+        return $form;
+    }
+
+
+    private function getUpdateFilename( $deviceId, $updateId ) 
+    {
+        return __DIR__ . "/../../data/ota/{$deviceId}_{$updateId}.bin";   
+    }
+    
+    public function updateFormSucceeded(Form $form, array $values): void
+    {
+        $id = $this->getParameter('id');
+        if( $id ) {
+            // editace
+            $device = $this->datasource->getDevice( $id );
+            if (!$device) {
+                $this->error('Zařízení nebylo nalezeno');
+            }
+            $this->checkAcces( $device->user_id );
+
+            $file = $values['image'];
+            // kontrola, jestli se nahrál dobře
+            if(! $file->isOk())
+            {
+                $this->flashMessage('Něco selhalo.', 'danger');
+                $this->redirect('Device:show', $id );
+                return;
+            }
+
+            // vraci hexastream
+            $fileHash = hash("sha256", $file->getContents(), false );
+
+            // ulozit data do tabulky a soubor na disk
+            $fileId = $this->datasource->otaUpdateCreate( $id, $values['fromVersion'], $fileHash );
+            if( $fileId==-1 ) {
+                $this->flashMessage('Pro tohle zařízení a verzi aplikace již požadavek na update existuje.', 'danger');
+                $this->redirect('Device:show', $id );
+                return;
+            }
+
+            // přesunutí souboru z temp složky někam, kam nahráváš soubory
+            $file->move( $this->getUpdateFilename( $id, $fileId ) );
+
+            Logger::log( 'webapp', Logger::INFO ,
+            "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} posila aktualizaci {$fileId} na zarizeni {$id}" );            
+            
+            $this->datasource->deleteSession( $id );
+
+            $this->flashMessage("Aktualizace připravena.", 'success');
+            $this->redirect("Device:show", $id );
+        } else {
+            // to se nema stat
+            $this->redirect("Inventory:home" );
+        }
+    }    
+
+    public function renderDeleteupdate( int $device_id, int $update_id ): void
+    {
+        $device = $this->datasource->getDevice( $device_id );
+        if (!$device) {
+            $this->error('Zařízení nebylo nalezeno');
+        }
+        $this->checkAcces( $device->user_id );
+
+        $this->datasource->otaDeleteUpdate( $device_id, $update_id );
+
+        FileSystem::delete( $this->getUpdateFilename( $device_id, $update_id ) );
+
+        Logger::log( 'webapp', Logger::INFO ,
+        "Uzivatel #{$this->getUser()->id} {$this->getUser()->getIdentity()->username} maze aktualizaci {$update_id} na zarizeni {$device_id}" );            
+
+        $this->flashMessage("Aktualizace smazána.", 'success');
+        $this->redirect("Device:show", $device_id );
+    }
 }
 

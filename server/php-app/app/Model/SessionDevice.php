@@ -18,6 +18,10 @@ class SessionDevice
 	public $sessionId;
     public $sessionKey;
     public $deviceId;
+
+    /**
+     * V checkSession se NEVYPLNUJE!
+     */
     public $deviceName;
 }
 

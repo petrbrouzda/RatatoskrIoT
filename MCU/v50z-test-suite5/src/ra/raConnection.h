@@ -15,15 +15,22 @@
 
 #include "raConfig.h"
 #include "raLogger.h"
+#include "TextCircularBuffer.h"
 
 #include "../aes-sha/sha256.h"
+
+#include "../../AppFeatures.h"
 
 #define RACONN_MAX_DATA 448
 #define RACONN_MSG_LEN 1024
 
+/**
+ * Jak dlouho se ceka na odpoved po poslani hlavicky
+ */ 
 #define RA_BLOB_TIMEOUT 15000
+#define RA_UPDATE_TIMEOUT 15000
 
-#define RA_APP_NAME_SIZE 128
+#define RA_APP_NAME_SIZE 256
 
 class raConnection 
 {
@@ -36,6 +43,16 @@ class raConnection
     void setConfigVersion( int version );
     void setRssi( int rssi );
     
+    #ifdef LOG_SHIPPING
+      bool sendLogData( char * data );  
+    #endif
+    long updateReqId;
+    bool shouldRestart;
+
+    #ifdef OTA_UPDATE
+      bool doUpdate( long updateId );
+    #endif
+    
   private:
     void login();
     void createLoginToken( BYTE *target, BYTE * ecdh_public );
@@ -46,8 +63,9 @@ class raConnection
     void log_keys( unsigned char * key, unsigned char * iv );
     bool decryptBlock( char * encryptedData, char * plainText, int plainTextBuffSize );
     void parseConfigData( char * encryptedData, char * plainText, int plainTextBuffSize, char * oneLine, int oneLineSize );
+    void parseUpdateRequest( char * encryptedData, char * plainText, int plainTextBuffSize );
     void decryptPublicKeyBlock( char * encryptedData, char * plainText, int plainTextBuffSize );
-    int doRequest( char * url, unsigned char * postData, int postDataLen );
+    int doRequest( char * url, unsigned char * postData, int postDataLen, char * auth1 = NULL, char * auth2 = NULL );
     
     raLogger* logger;
     raConfig * cfg;

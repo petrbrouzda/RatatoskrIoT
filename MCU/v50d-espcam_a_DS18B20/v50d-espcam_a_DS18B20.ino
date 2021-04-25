@@ -489,6 +489,9 @@ void inactivitySleep()
  */
 void raAllWasSent()
 {
+  // pokud jsou nejake logy k odeslani, odesleme (pokud je to zapnute)
+  raShipLogs();
+
   // podrzime LED pin na LOW i v dobe deep sleep
   // jinak to bude trochu svitit 
   blinker.off();
@@ -500,12 +503,16 @@ void raAllWasSent()
   ra->deepSleep( sleepPeriod );
 }
 
+
 /**
- * Vraci jmeno aplikace a jeji verzi do alokovaneho bufferu.
+ * Vraci jmeno aplikace do alokovaneho bufferu.
+ * Jmeno aplikace by nemelo obsahovat strednik.
  */
 void raGetAppName( char * target, int size )
 {
-  snprintf( target, size, "%s - %s %s", __FILE__, __DATE__, __TIME__ );
+  snprintf( target, size, "%s, %s %s", 
+            __FILE__, __DATE__, __TIME__ 
+            );  
   target[size-1] = 0;
 }
 

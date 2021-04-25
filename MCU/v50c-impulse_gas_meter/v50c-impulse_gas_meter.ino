@@ -174,12 +174,16 @@ void raAllWasSent()
   // v teto aplikaci se nepouziva
 }
 
+
 /**
- * Vraci jmeno aplikace a jeji verzi do alokovaneho bufferu.
+ * Vraci jmeno aplikace do alokovaneho bufferu.
+ * Jmeno aplikace by nemelo obsahovat strednik.
  */
 void raGetAppName( char * target, int size )
 {
-  snprintf( target, size, "%s - %s %s", __FILE__, __DATE__, __TIME__ );
+  snprintf( target, size, "%s, %s %s", 
+            __FILE__, __DATE__, __TIME__ 
+            );  
   target[size-1] = 0;
 }
 

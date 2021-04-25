@@ -218,18 +218,24 @@ void inactivitySleep()
  */
 void raAllWasSent()
 {
+  // pokud jsou nejake logy k odeslani, odesleme (pokud je to zapnute)
+  raShipLogs();
   // z konfigurace nacteme dobu, na kterou se mame uspavat; pokud nebyla konfigurace nastavena, dáme 60 sec
   long sleepPeriod = config.getLong( "sleep_sec", 60 ) * 1e6L;
   // deep sleep 
   ra->deepSleep( sleepPeriod );
 }
 
+
 /**
- * Vraci jmeno aplikace a jeji verzi do alokovaneho bufferu.
+ * Vraci jmeno aplikace do alokovaneho bufferu.
+ * Jmeno aplikace by nemelo obsahovat strednik.
  */
 void raGetAppName( char * target, int size )
 {
-  snprintf( target, size, "%s - %s %s", __FILE__, __DATE__, __TIME__ );
+  snprintf( target, size, "%s, %s %s", 
+            __FILE__, __DATE__, __TIME__ 
+            );  
   target[size-1] = 0;
 }
 
@@ -348,16 +354,6 @@ bool wifiStatus_ShouldStartConfig()
 //------------------------------------ callbacks from WiFi ---
 
 /*
-ESP8266 2.7.1:
-Použití knihovny ESP8266WiFi ve verzi 1.0 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\ESP8266WiFi 
-Použití knihovny DNSServer ve verzi 1.1.1 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\DNSServer 
-Použití knihovny ESP8266WebServer ve verzi 1.0 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\ESP8266WebServer 
-Použití knihovny Tasker ve verzi 2.0 v adresáři: C:\Users\brouzda\Documents\Arduino\libraries\Tasker 
-Použití knihovny Ticker ve verzi 1.0 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\Ticker 
-Použití knihovny ESP8266HTTPClient ve verzi 1.2 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\ESP8266HTTPClient 
-Použití knihovny OneWire ve verzi 2.3.5 v adresáři: C:\Users\brouzda\Documents\Arduino\libraries\OneWire 
-Použití knihovny DallasTemperature ve verzi 3.8.0 v adresáři: C:\Users\brouzda\Documents\Arduino\libraries\DallasTemperature 
-
 ESP32 1.0.4:
 Použití knihovny FS ve verzi 1.0 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.4\libraries\FS 
 Použití knihovny WiFi ve verzi 1.0 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.4\libraries\WiFi 

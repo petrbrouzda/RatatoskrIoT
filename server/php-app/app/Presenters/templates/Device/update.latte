@@ -1,0 +1,39 @@
+{layout '../@layoutAdmin.latte'}
+
+{define content}
+
+<div class="pb-3 pt-3 px-2">
+<h1>Aktualizace aplikace - {$name}</h1>
+
+{if $warningVer}
+    <div class="row px-2 py-1">
+        <div class="col-12">
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>&nbsp;Chyba! Jméno aplikace zaslané ze zařízení neobsahuje 
+                na začátku identifikátor verze aplikace v hranatých závorkách. Aktualizace nebude fungovat.
+            </div>
+        </div>
+    </div>
+{/if}
+{if $warningOTA}
+    <div class="row px-2  py-1">
+        <div class="col-12">
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>&nbsp;Pozor! Jméno aplikace zaslané ze zařízení neobsahuje 
+                značku, že je aplikace zkompilovaná s podporou OTA updatů ("OTA Y"). Je možné, že aktualizace nebudou fungovat.
+            </div>
+        </div>
+    </div>
+{/if}
+
+{control updateForm}
+
+</div>
+
+<div class="row px-2  pt-3">
+    <div class="col-12">
+        <a n:href="Device:show $id" class="btn btn-outline-primary btn-sm" role="button">Zpět beze změny</a>
+    </div>
+</div>
+
+{/define}

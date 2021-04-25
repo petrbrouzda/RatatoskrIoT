@@ -6,13 +6,6 @@
 #include "../aes-sha/sha256.h"
 #include "../aes-sha/CRC32.h"
 
-#define CBC 1
-#define ECB 0
-#define CTR 0
-extern "C" {
-    #include "../aes-sha/aes.h"
-}
-
 #include "../platform/platform.h"
 
 

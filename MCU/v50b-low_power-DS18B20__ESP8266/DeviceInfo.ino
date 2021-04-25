@@ -1,6 +1,31 @@
 #include "DeviceInfo.h"
 
-#if defined(ESP32)
+void formatMemorySize( char * ptr, long msize )
+{
+  float out;
+  char * jednotka;
+  if( msize > 1048576 ) {
+    out = ((float)msize) / 1048576.0;
+    jednotka = (char*)"MB";
+  } else if( msize > 1024 ) {
+    out = ((float)msize) / 1024.0;
+    jednotka = (char*)"kB";
+  } else if( msize > 0 ) {
+    out = ((float)msize);
+    jednotka = (char*)"B";
+  } else {
+    out = 0;
+  }
+
+  if( out>0 ) {
+    sprintf( ptr, "%.1f %s", out, jednotka );
+  } else {
+    strcpy( ptr, "--" );
+  }
+}
+
+
+#ifdef ESP32
 
   #include <ESP.h>
   
@@ -9,29 +34,6 @@
     #include <esp_himem.h>
   }
   
-  void formatMemorySize( char * ptr, long msize )
-  {
-    float out;
-    char * jednotka;
-    if( msize > 1048576 ) {
-      out = ((float)msize) / 1048576.0;
-      jednotka = (char*)"MB";
-    } else if( msize > 1024 ) {
-      out = ((float)msize) / 1024.0;
-      jednotka = (char*)"kB";
-    } else if( msize > 0 ) {
-      out = ((float)msize);
-      jednotka = (char*)"B";
-    } else {
-      out = 0;
-    }
-  
-    if( out>0 ) {
-      sprintf( ptr, "%.1f %s", out, jednotka );
-    } else {
-      strcpy( ptr, "--" );
-    }
-  }
   
   #define LOW_PSRAM_ONLY
   
@@ -40,31 +42,30 @@
     strcpy( out, "RAM " );
     formatMemorySize( out+strlen(out), ESP.getHeapSize() );
   
-  #ifdef LOW_PSRAM_ONLY
-  
-    strcat( out, "; PSRAM " );
-    formatMemorySize( out+strlen(out), ESP.getPsramSize() );
-  
-  #else
-  
-    long psramtotal = esp_spiram_get_size();
-    strcat( out, "; PSRAM [" );
-    formatMemorySize( out+strlen(out), psramtotal );
-    if( psramtotal>0 ) {
-      strcat( out, ": low: " );
-      formatMemorySize( out+strlen(out), ESP.getPsramSize() );
-      strcat( out, ", high: " );
-      formatMemorySize( out+strlen(out), esp_himem_get_phys_size() );
-    }
-    strcat( out, "]" );
+    #ifdef LOW_PSRAM_ONLY
     
-  #endif
+      strcat( out, "; PSRAM " );
+      formatMemorySize( out+strlen(out), ESP.getPsramSize() );
+    
+    #else
+    
+      long psramtotal = esp_spiram_get_size();
+      strcat( out, "; PSRAM [" );
+      formatMemorySize( out+strlen(out), psramtotal );
+      if( psramtotal>0 ) {
+        strcat( out, ": low: " );
+        formatMemorySize( out+strlen(out), ESP.getPsramSize() );
+        strcat( out, ", high: " );
+        formatMemorySize( out+strlen(out), esp_himem_get_phys_size() );
+      }
+      strcat( out, "]" );
+      
+    #endif
   
-    sprintf( out+strlen(out), "; CPUr%d %d MHz; flash %d MHz; RA %s", 
-            ESP.getChipRevision(),
+    sprintf( out+strlen(out), "; CPUx%d %d MHz; flash %d MHz", 
+            ESP.getChipCores(),
             ESP.getCpuFreqMHz(), 
-            (ESP.getFlashChipSpeed()/1000000),
-            RA_CORE_VERSION
+            (ESP.getFlashChipSpeed()/1000000)
            );
   }
 
@@ -83,7 +84,19 @@ const char * wakeupReasonText( int wakeup_reason )
   }
 }
 */
+#endif
 
+#ifdef ESP8266
+  void formatDeviceInfo( char * out )
+  {
+    strcpy( out, "RAM " );
+    formatMemorySize( out+strlen(out), ESP.getFreeHeap() );
+  
+    sprintf( out+strlen(out), "; CPU %d MHz; flash %d MHz", 
+            ESP.getCpuFreqMHz(),
+            (ESP.getFlashChipSpeed()/1000000)
+           );
+  }
 #endif
 
 
@@ -103,7 +116,11 @@ void read_wakeup_and_print_startup_info( bool print, const char * appInfo )
       deepSleepStart = false;
       if( print ) {
         // pokud to NENI probuzeni po deep sleep, vypiseme info
-        logger->log( "rst rsn %d; CPU %d MHz; RA %s", wakeupReason, ESP.getCpuFreqMHz(), RA_CORE_VERSION );
+        char buff[120];
+        formatDeviceInfo( buff );
+        logger->log( "rst rsn %d; %s", 
+            wakeupReason, buff
+            );
         logger->log( "app: %s", appInfo );
       }
     } else {

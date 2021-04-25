@@ -94,7 +94,17 @@
                         {/if}
                     </div>
                     <div class="col-6 col-md-2">{$sensor['msg_rate']}, {$sensor['display_nodata_interval']}</div>
-                    <div class="col-12 col-md-2"><i>{$sensor['desc']}</i></div>
+                    <div class="col-12 col-md-2">
+                        {if $sensor['warn_max']} 
+                            <a href="#" data-toggle="tooltip" data-placement="top" title="Senzor má nastaveno posílání varování při překročení horního limitu."
+                                ><i class="fas fa-sort-amount-up"></i></a>
+                        {/if}
+                        {if $sensor['warn_min']} 
+                            <a href="#" data-toggle="tooltip" data-placement="top" title="Senzor má nastaveno posílání varování při překročení spodního limitu."
+                                ><i class="fas fa-sort-amount-down"></i></a>
+                        {/if}                    
+                        <i>{$sensor['desc']}</i>
+                    </div>
                     <div class="col-6 col-md-2">
                         <a href="../chart/sensorstat/show/{$sensor['id']}/?current=1">Statistika</a>
                          · 

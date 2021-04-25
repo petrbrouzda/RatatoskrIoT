@@ -331,6 +331,34 @@ class RaDataSource
         $values['status'] = 1;
         $this->database->query('UPDATE blobs SET', $values, 'WHERE id = ?', $rowId );
     }
+
+    public function getUpdate( $deviceId, $appId )
+    {
+        return $this->database->fetch('
+            SELECT *
+            FROM updates 
+            WHERE device_id = ? AND fromVersion = ?
+        ', $deviceId, $appId  ); 
+    }
+
+    public function getUpdateById( $updateId )
+    {
+        return $this->database->fetch('
+            select u.id as update_id, u.device_id, u.fileHash, s.id as session_id, s.hash, s.session_key
+            from updates u
+            left outer join sessions s
+            on s.device_id = u.device_id
+            where u.id=?
+        ', $updateId  ); 
+    }
+
+
+    public function setUpdateTime( $updateId )
+    {
+        $this->database->query('UPDATE updates SET', [
+            'downloaded' => new \DateTime(),
+        ], 'WHERE id = ?', $updateId );
+    }
 }
 
 

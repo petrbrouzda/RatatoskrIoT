@@ -1,5 +1,12 @@
 #include "raConfig.h"
 
+#define CBC 1
+#define ECB 0
+#define CTR 0
+extern "C" {
+    #include "../aes-sha/aes.h"
+}
+
 
 raConfig::raConfig()
 {

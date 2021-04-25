@@ -111,12 +111,16 @@ void raAllWasSent()
   // v teto aplikaci se nepouziva
 }
 
+
 /**
- * Vraci jmeno aplikace a jeji verzi do alokovaneho bufferu.
+ * Vraci jmeno aplikace do alokovaneho bufferu.
+ * Jmeno aplikace by nemelo obsahovat strednik.
  */
 void raGetAppName( char * target, int size )
 {
-  snprintf( target, size, "%s - %s %s", __FILE__, __DATE__, __TIME__ );
+  snprintf( target, size, "%s, %s %s", 
+            __FILE__, __DATE__, __TIME__ 
+            );  
   target[size-1] = 0;
 }
 
@@ -221,4 +225,16 @@ Použití knihovny ESP8266WebServer ve verzi 1.0 v adresáři: C:\Users\brouzda\
 Použití knihovny Tasker ve verzi 2.0 v adresáři: C:\Users\brouzda\Documents\Arduino\libraries\Tasker 
 Použití knihovny Ticker ve verzi 1.0 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\Ticker 
 Použití knihovny ESP8266HTTPClient ve verzi 1.2 v adresáři: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.7.1\libraries\ESP8266HTTPClient 
+
+ESP32 1.0.6
+Using library FS at version 1.0 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\FS 
+Using library WiFi at version 1.0 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\WiFi 
+Using library HTTPClient at version 1.2 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\HTTPClient 
+Using library WiFiClientSecure at version 1.0 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\WiFiClientSecure 
+Using library WebServer at version 1.0 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\WebServer 
+Using library DNSServer at version 1.1.0 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\DNSServer 
+Using library Tasker at version 2.0 in folder: c:\Users\brouzda\Documents\Arduino\libraries\Tasker 
+Using library Ticker at version 1.1 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\Ticker 
+Using library SPIFFS at version 1.0 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\SPIFFS 
+Using library Update at version 1.0 in folder: C:\Users\brouzda\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\Update
 */

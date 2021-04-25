@@ -54,16 +54,16 @@ the same endianness. */
 
 /* Curve support selection. Set to 0 to remove that curve. */
 #ifndef uECC_SUPPORTS_secp160r1
-    #define uECC_SUPPORTS_secp160r1 1
+    #define uECC_SUPPORTS_secp160r1 0
 #endif
 #ifndef uECC_SUPPORTS_secp192r1
-    #define uECC_SUPPORTS_secp192r1 1
+    #define uECC_SUPPORTS_secp192r1 0
 #endif
 #ifndef uECC_SUPPORTS_secp224r1
-    #define uECC_SUPPORTS_secp224r1 1
+    #define uECC_SUPPORTS_secp224r1 0
 #endif
 #ifndef uECC_SUPPORTS_secp256r1
-    #define uECC_SUPPORTS_secp256r1 1
+    #define uECC_SUPPORTS_secp256r1 0
 #endif
 #ifndef uECC_SUPPORTS_secp256k1
     #define uECC_SUPPORTS_secp256k1 1
@@ -72,7 +72,7 @@ the same endianness. */
 /* Specifies whether compressed point format is supported.
    Set to 0 to disable point compression/decompression functions. */
 #ifndef uECC_SUPPORT_COMPRESSED_POINT
-    #define uECC_SUPPORT_COMPRESSED_POINT 1
+    #define uECC_SUPPORT_COMPRESSED_POINT 0
 #endif
 
 struct uECC_Curve_t;

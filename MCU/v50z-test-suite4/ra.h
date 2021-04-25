@@ -6,5 +6,6 @@ void ratatoskr_startup( bool initSerial );
 void raPrintHeap();
 void memInfo( const char * func, int line);
 void raGetDeviceId( char * buf );
+bool raShipLogs();
 
 #endif

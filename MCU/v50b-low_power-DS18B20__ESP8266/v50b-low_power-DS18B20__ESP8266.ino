@@ -213,19 +213,24 @@ void inactivitySleep()
  */
 void raAllWasSent()
 {
+  // pokud jsou nejake logy k odeslani, odesleme (pokud je to zapnute)
+  raShipLogs();
   // z konfigurace nacteme dobu, na kterou se mame uspavat; pokud nebyla konfigurace nastavena, dáme 60 sec
   long sleepPeriod = config.getLong( "sleep_sec", 60 ) * 1e6L;
-
   // deep sleep 
   ra->deepSleep( sleepPeriod );
 }
 
+
 /**
- * Vraci jmeno aplikace a jeji verzi do alokovaneho bufferu.
+ * Vraci jmeno aplikace do alokovaneho bufferu.
+ * Jmeno aplikace by nemelo obsahovat strednik.
  */
 void raGetAppName( char * target, int size )
 {
-  snprintf( target, size, "%s - %s %s", __FILE__, __DATE__, __TIME__ );
+  snprintf( target, size, "%s, %s %s", 
+            __FILE__, __DATE__, __TIME__ 
+            );  
   target[size-1] = 0;
 }
 

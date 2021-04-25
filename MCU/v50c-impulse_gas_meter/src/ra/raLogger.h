@@ -7,6 +7,8 @@
 #include <stdarg.h>
 #include <Arduino.h>
 
+#include "TextCircularBuffer.h"
+
 
 /*
     Simple logging interface to Serial port.
@@ -58,9 +60,16 @@ class raLogger : public Print
     // content written by Print interface - erased after next log() call
     char * printed;
 
+#ifdef LOG_SHIPPING
+    void setShippingBuffer( TextCircularBuffer * logShippingBuffer );
+    TextCircularBuffer * logShippingBuffer;
+#else
+    void * logShippingBuffer;
+#endif
+
   private:
     void init( int mode );
-    bool run;
+    bool runSerial;
     char * msgBuffer;
     int printPos; 
 };

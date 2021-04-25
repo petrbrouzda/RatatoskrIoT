@@ -7,21 +7,36 @@
 
 {control sendconfigForm}
 
-<br>
-Zapište změny konfigurace ve formě
-<br>
-<b>&nbsp;&nbsp;&nbsp;JménoPoložky=Obsah
-<br>&nbsp;&nbsp;&nbsp;JináPoložka=JinýObsah</b>
-<br>
-Jedna řádka nesmí být delší než 256 byte a celá změna nesmí přesáhnout 512 byte.
-
-</div>
-
 <div class="row px-2  pt-3">
     <div class="col-12">
         <a n:href="Device:show $id" class="btn btn-outline-primary btn-sm" role="button">Zpět beze změny</a>
     </div>
 </div>
+
+<div class="pb-1 pt-1 px-2">
+<br>
+<p>
+Zapište změny konfigurace ve formě
+<br>
+<b>&nbsp;&nbsp;&nbsp;JménoPoložky=Obsah
+<br>&nbsp;&nbsp;&nbsp;JináPoložka=JinýObsah</b>
+<p>
+<p>
+Jedna řádka nesmí být delší než 256 byte a celá změna nesmí přesáhnout 512 byte.
+</p>
+<p>
+Standardní konfigurační položky:
+<ul>
+<li><b>wifi_ssid</b> - Jméno (SSID) WiFi sítě
+<li><b>$wifi_pass</b> - Heslo k WiFi
+<li><b>ra_url</b> - Adresa serveru (bez http:// na začátku, takže třeba muj.server.cz/iot/ra )
+<li><b>ra_dev_name</b> - Jméno zařízení
+<li><b>$ra_pass</b> - Heslo zařízení
+<li><b>log_ship</b> - 1 = zařízení má posílat logy na server; 0 = neposílat (funguje jen pokud je aplikace zkompilovaná s nastavením LOG_SHIPPING)
+</ul>
+</p>
+</div>
+
 
 
 {/define}

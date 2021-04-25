@@ -547,6 +547,51 @@ class InventoryDataSource
             order by id asc
         ' );
     }
+
+
+    /**
+     * Vraci ID zaznamu NEBO -1, pokud pro dane zarizeni a verzi uz existuje
+     */
+    public function otaUpdateCreate( $id, $fromVersion, $fileHash )
+    {
+        $rs1 = $this->database->fetchAll(  '
+            select *
+            from  updates
+            where device_id = ?
+                and fromVersion = ?
+        ', $id, $fromVersion );        
+        if( count($rs1)!=0 ) {
+            return -1;
+        }
+
+        $this->database->query('INSERT INTO updates ', [ 
+            'device_id' => $id,
+            'fromVersion' => $fromVersion,
+            'fileHash' => $fileHash,
+            'inserted' => new \DateTime(),
+        ]);
+        
+        return $this->database->getInsertId(); 
+    }
+
+
+    public function getOtaUpdates( $id )
+    {
+        return $this->database->fetchAll(  '
+            select *
+            from updates
+            where device_id = ?
+            order by id asc
+        ', $id );
+    }
+
+    public function otaDeleteUpdate( $deviceId, $updateId  )
+    {
+        $this->database->query('DELETE FROM updates 
+            where id = ?
+            and device_id= ?
+        ', $updateId , $deviceId  );
+    }
     
 }
 

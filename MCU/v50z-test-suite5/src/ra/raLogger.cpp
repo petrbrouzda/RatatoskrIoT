@@ -16,26 +16,14 @@ void raLogger::init( int mode )
     this->printed = (char *)malloc( RA_PRINT_BUFFER_SIZE+2 );
     this->printPos = 0;
     this->printed[0] = 0;
-    
-    if( mode == RA_LOG_MODE_SERIAL ) {
-        this->msgBuffer = (char *)malloc( RA_BUFFER_SIZE+2 );
-        this->run = true;
-    } else {
-        this->msgBuffer = NULL;
-        this->run = false;
-    }
-    
+    this->logShippingBuffer = NULL;
+    this->msgBuffer = (char *)malloc( RA_BUFFER_SIZE+2 );
+    this->runSerial = ( mode == RA_LOG_MODE_SERIAL );
     this->log( "" );
 }
 
 void raLogger::log( const char * format, ... )
 {
-    if( !this->run ) {
-        // i kdyz nepouzivam, musim smazat pocitadlo znaku v 'printed', jinak by mi preteklo
-        this->printPos = 0;
-        return;
-    }
-    
     va_list args;
     va_start( args, format );
     vsnprintf( this->msgBuffer, RA_BUFFER_SIZE, format, args );
@@ -44,8 +32,16 @@ void raLogger::log( const char * format, ... )
     
     this->printPos = 0;
     this->printed[0] = 0;
-    
-    Serial.println( this->msgBuffer );
+
+#ifdef LOG_SHIPPING
+    if( this->logShippingBuffer ) {
+        this->logShippingBuffer->write( this->msgBuffer );
+    }
+#endif
+
+    if( this->runSerial ) {
+        Serial.println( this->msgBuffer );
+    }
 }
 
 
@@ -66,3 +62,10 @@ size_t raLogger::write(const uint8_t* buffer, size_t size)
     this->printed[ this->printPos ] = 0;
     return size;
 }
+
+#ifdef LOG_SHIPPING
+void raLogger::setShippingBuffer( TextCircularBuffer * logShippingBuffer )
+{
+    this->logShippingBuffer = logShippingBuffer;
+}
+#endif

@@ -29,6 +29,14 @@ extern "C" {
     RTC_DATA_ATTR unsigned char rtcSessionKey[32];    
 #endif
 
+#ifdef OTA_UPDATE
+    #include <Update.h>
+#endif
+
+/**
+ * ESP8266: je mozne, ale jinak:
+    https://arduino-esp8266.readthedocs.io/en/latest/ota_updates/readme.html#http-server
+ */
 
 static int RNG(uint8_t *dest, unsigned size) {
 
@@ -55,6 +63,8 @@ raConnection::raConnection( raConfig * cfg, raLogger* logger  )
     this->cfg = cfg;
     this->connected = false;
     this->sha256=new Sha256();
+    this->updateReqId = 0;
+    this->shouldRestart = false;
     strcpy( this->appName, "-" );
     uECC_set_rng(&RNG);
     
@@ -209,41 +219,10 @@ int raConnection::send( unsigned char * dataKOdeslani, int dataLen )
 }
 
 
-/*
-long raConnection::readServerTime()
-{
-    char url[256];
-    sprintf( url, "http://%s/time", this->cfg->getString( "ra_url", "???" ) );
-    
-    this->logger->log( "%s TIME", this->identity );
-    
-    HTTPClient http;
-    http.begin( url );
-    int httpCode = http.GET();
-    String payload = http.getString();
-    http.end();
-
-    if( httpCode!=200 ) {
-        // error description
-        this->logger->log( "%s r%d [%s]", this->identity, httpCode, payload.c_str() );
-        return 0;
-    } else {
-        long l = atol( (const char*)payload.c_str() );
-        this->logger->log( "%s TIME=%d", this->identity, l );
-        return l;
-    }
-}
-*/
-
-
-
-
 
 // definovano v aes.h
 // #define AES_KEYLEN 32
 // #define AES_BLOCKLEN 16
- 
-
 
 
 
@@ -344,6 +323,9 @@ bool getNextLine( char * target, int targetSize )
  *      <AES IV>:<AES_encrypted_data>
  * oboji zapsane jako retezec hexitu
  * 
+ * POZOR! Plaintext buffer musi mit o 6+16 byte vice nez samotny obsah;
+ * dekodovany obsah zacina na +6.
+ * 
  * Obsah plaintextu:
  *      CRC32 of data (4 byte)
  *      length of data (2 byte, low endian)
@@ -416,6 +398,18 @@ void raConnection::decryptPublicKeyBlock( char * encryptedData, char * plainText
 }
 
 
+void raConnection::parseUpdateRequest( char * encryptedData, char * plainText, int plainTextBuffSize )
+{
+    if( ! decryptBlock( encryptedData, plainText, plainTextBuffSize ) ) {
+        return;
+    }
+    // plainText mame dekodovana data
+    // v plainText+6 je vlastni payload
+    this->logger->log( "%s update req [%s]", this->identity, plainText+6 );
+    this->updateReqId = atol( (const char*)(plainText+6) );
+}
+
+
 /**
  * encryptedData = vstupni data
  * plainText = buffer pro desifrovana data (reusing bufferu z nadrizene fce)
@@ -429,8 +423,8 @@ void raConnection::parseConfigData( char * encryptedData, char * plainText, int 
 
     //D/ this->logger->log( "%s cfg pt [%s]", this->identity, plainText+6 );
 
-    // v p mame dekodovany string
-    // a v nem v p+6 je vlastni payload
+    // plainText mame dekodovana data
+    // v plainText+6 je vlastni payload
     textParser( plainText+6 );
     if( getNextLine( oneLine, oneLineSize ) ) {
         //D/ this->logger->log( "%s config ver [%s]", this->identity, oneLine );
@@ -460,11 +454,17 @@ void raConnection::parseConfigData( char * encryptedData, char * plainText, int 
  * 2 = jina chyba
  * Vystupni data jsou v this->httpBuffer
  */ 
-int raConnection::doRequest( char * url, unsigned char * postData, int postDataLen )
+int raConnection::doRequest( char * url, unsigned char * postData, int postDataLen, char * auth1, char * auth2 )
 {
     HTTPClient http;
     http.begin( url );
     http.addHeader("Content-Type", "application/octet-stream");
+    if( auth1 ) {
+        http.addHeader("x-ra-1", auth1 );
+    }
+    if( auth2 ) {
+        http.addHeader("x-ra-2", auth2 );
+    }
     int httpCode = http.POST( (
 #ifdef ESP8266    
             const 
@@ -504,7 +504,7 @@ void raConnection::login()
     * Tj. cela zmena konfigurace muze mit maximalne 500 byte, a kazda radka (jmeno=hodnota) smi mit max 256 byte
     */ 
 
-#define BUFF_LEN 256    
+#define BUFF_LEN 384
     char buff[BUFF_LEN];
 
 #define URL_BUFFER_LEN 512
@@ -591,7 +591,7 @@ void raConnection::login()
     // ---------------------------------------------------------------------------------
     // loginb
 
-    sprintf( url, "http://%s/loginb", this->cfg->getString( "ra_url", "???" ) );
+    sprintf( url, "http://%s/loginb?v=3", this->cfg->getString( "ra_url", "???" ) );
     this->logger->log( "%s LOGINB", this->identity );
 
     sprintf( (char *)this->msg, "%s\n", this->session );
@@ -636,8 +636,17 @@ void raConnection::login()
     // ----------------------------------------------
     // druhy radek odpovedi = zpracujeme zmeny konfigurace, pokud tam jsou
     if( getNextLine( (char*)this->msg, RACONN_MSG_LEN )  ) {
-        // parseConfigData( char * encryptedData, char * plainText, int plainTextBuffSize, char * oneLine, int oneLineSize )
-        this->parseConfigData( (char*)this->msg, url, URL_BUFFER_LEN, buff, BUFF_LEN );
+        if( strlen((const char*)this->msg) > 5 ) {
+            this->parseConfigData( (char*)this->msg, url, URL_BUFFER_LEN, buff, BUFF_LEN );
+        }
+    }
+
+    // ----------------------------------------------
+    // treti radek odpovedi, pokud je = pozadavek na upgrade
+    if( getNextLine( (char*)this->msg, RACONN_MSG_LEN )  ) {
+        if( strlen((const char*)this->msg) > 5 ) {
+            this->parseUpdateRequest( (char*)this->msg, url, URL_BUFFER_LEN );
+        }
     }
 
     this->logger->log( "%s OK %s", this->identity, this->session );
@@ -700,6 +709,7 @@ void addChar( char c )
 {
     if( c=='\n' ) {
         lineComplete = true;
+        receivedLine[pos] = 0;
     } else if( c=='\r' ) {
         receivedLine[pos] = 0;
     } else {
@@ -727,7 +737,7 @@ char * getLine()
 /**
  * Parsuje radku s http statusem
  */ 
-int parseStatusLine( char * statusLine )
+int parseStatusLine( char * statusLine  )
 {
     char * p = strchr( statusLine, ' ' );
     if( p==NULL ) {
@@ -744,12 +754,12 @@ int parseStatusLine( char * statusLine )
 /**
  * Zpracuje radku s aplikacni odpovedi z RA
  */ 
-int parseDataLine( char * dataLine )
+int parseDataLine( char * dataLine, raLogger * logger )
 {
     if( strcmp(dataLine,"OK") == 0 ) {
         return 0;
     } else {
-        Serial.printf( "ERR: %s\n", dataLine );
+        logger->log( "blob ERR: %s", dataLine );
         return -1;
     }
 }
@@ -830,7 +840,7 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
     WiFiClient client;
 
     if (! client.connect(server, 80)) {
-        Serial.println("Connect failed.");
+        this->logger->log("blob connect failed.");
         return 2;
     } else {
         Serial.println("Connected" );
@@ -853,10 +863,16 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
 
     unsigned char binData[BLOCKSIZE_PLAIN+2];
 
-    Serial.printf( "len %d kB\n", blobSize/1024 );
+    this->logger->log( "len %d kB", blobSize/1024 );
 
     uint8_t *fbBuf = blob;
     for (size_t n=0; n<blobSize; n=n+BLOCKSIZE_PLAIN) {
+
+        if( !client.connected() ) {
+            this->logger->log( "-disc-");
+            break;
+        }
+
         if( n % 10240 == 0 ) {
             Serial.printf( "%d kB  ", n/1024 );
         }
@@ -908,19 +924,25 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
     Serial.println("");
 
     while( (status!=3) && (startTimer + timeoutTimer) > millis() ) {
-        Serial.print(".");
-        delay(100);      
+        if( !client.connected() ) {
+            this->logger->log( "-disc-");
+            rc = 10;
+            status = 3;
+            break;
+        }
+
         while (client.available()) {
             addChar( client.read() );
-            startTimer = millis();
             if( lineComplete ) {
+                startTimer = millis();
                 char * line = getLine();
                 if( status==0 ) {
                     rc=parseStatusLine( line );
                     if( rc!=0 ) {
+                        this->logger->log( "blob status %d", rc );
                         status = 3;
                         break;
-                    }
+                    } 
                     status = 1;
                 } else if( status==1 ) {
                     if( strlen(line)==0 ) {
@@ -928,7 +950,7 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
                         status = 2;
                     }
                 } else if( status==2 ) {
-                    if( 0==parseDataLine( line ) ) {
+                    if( 0==parseDataLine( line, this->logger ) ) {
                         rc = 0;
                     } else {
                         rc = 4;
@@ -938,10 +960,13 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
                 }
             }
         } // while (client.available()) {
+
+        delay(100);      
+        Serial.print(".");
     }
     client.stop();
     
-    Serial.printf( "BLOB %d s\n", ((millis()-start)/1000) );
+    this->logger->log( "BLOB rc=%d, %d s", rc, ((millis()-start)/1000) );
     
     return rc;
 }
@@ -998,7 +1023,7 @@ bool raConnection::isConnected()
 void raConnection::setAppName( const char * appName )
 {
     strncpy( this->appName, appName, RA_APP_NAME_SIZE );
-    this->appName[RA_APP_NAME_SIZE] = 0;
+    this->appName[RA_APP_NAME_SIZE-1] = 0;
 }
 
 void raConnection::setConfigVersion( int version )
@@ -1006,7 +1031,317 @@ void raConnection::setConfigVersion( int version )
     this->localConfigVersion = version;
 }
 
-void raConnection:: setRssi( int rssi )
+void raConnection::setRssi( int rssi )
 {
     this->wifiSignalStrength = rssi;
 }
+
+#ifdef LOG_SHIPPING
+    bool raConnection::sendLogData( char * data )
+    {
+        if( !this->connected ) {
+            this->login();
+        }
+        if( !this->connected ) {
+            return false;           
+        }
+
+        char url[256];
+        sprintf( url, "http://%s/log", this->cfg->getString( "ra_url", "???" ) );
+
+        int dataLen = strlen(data);
+
+        BYTE sha256hash[AES_KEYLEN];
+        BYTE header[256];
+        
+        this->sha256->init();
+        this->sha256->update((const BYTE *)data, dataLen );
+        this->sha256->final(sha256hash);
+
+        //D/ btohexa( sha256hash, AES_KEYLEN, (char *)header, 255 );
+        //D/ this->logger->log( "hash: %s", header );
+
+        this->createDataPayload( header, sha256hash, AES_KEYLEN );
+
+        return 0 == this->doRequest( url, (unsigned char*)data, dataLen, this->session, (char*)header );
+    }
+#endif
+
+#ifdef OTA_UPDATE
+    /*
+    23:30:28.526 -> < Date: Thu, 22 Apr 2021 21:30:28 GMT
+    23:30:28.558 -> < Server: Apache/2.4.29 (Ubuntu)
+    23:30:28.577 -> < X-Powered-By: Nette Framework 3
+    23:30:28.603 -> < X-Content-Type-Options: nosniff
+    23:30:28.624 -> < X-XSS-Protection: 1; mode=block
+    23:30:28.645 -> < X-Frame-Options: SAMEORIGIN
+    23:30:28.662 -> < Set-Cookie: nette-samesite=1; path=/; SameSite=Strict; HttpOnly
+    23:30:28.707 -> < Vary: X-Requested-With
+    23:30:28.731 -> < Content-Disposition: inline; filename="update.bin"; filename*=utf-8''update.bin
+    23:30:28.800 -> < Accept-Ranges: bytes
+    23:30:28.820 -> < Content-Range: bytes 0-671777/671778
+    23:30:28.850 -> < Content-Length: 671778
+    23:30:28.877 -> < Content-Type: application/octet-stream
+    */
+
+    char * headerName;
+    char * headerContent;
+    
+    /**
+     * Rozlozi header na jmeno a obsah
+     * Vraci true = podarilo se, false = spatny format
+     */ 
+    bool splitHeader( char * header ) 
+    {
+        char * p = strchr( header, ':' );
+        if( p==NULL ) return false;
+        *p = 0;
+        p++;
+        if(*p != ' ' ) return false;
+        p++;
+        headerName = header;
+        headerContent = p;
+        return true;
+    }
+
+    bool hdrContentTypeOK;
+    int hdrContentLength;
+
+    /**
+     * Analyzuje header a plni content-type a content-length promenne
+     */ 
+    void analyzeHeader( char * header, char * secHeaderContent )
+    {
+        if( ! splitHeader( header )) return;
+        
+        if( strcmp( headerName, "Content-Type" ) == 0 ) {
+            if( strcmp(headerContent, "application/octet-stream" ) == 0 ) {
+                hdrContentTypeOK = true;
+                Serial.print( " CT:OK ");
+            } else {
+                Serial.printf( " CT:[%s] ", headerContent );
+            }
+        } else if( strcmp( headerName, "Content-Length" ) == 0 ) {
+            hdrContentLength = atoi( headerContent );
+            Serial.print( " CL ");
+        } else if( strcmp( headerName, "x-ra-1" ) == 0 ) {
+            strcpy( secHeaderContent, headerContent );
+            Serial.print( " XR1 ");
+        }
+    }
+
+
+
+    /**
+     * OTA update
+     *  1 = obecna chyba
+     *  2 = chyba spojeni
+     *  3 = chyba nacitani dat
+     *  0 = OK
+     */ 
+    bool raConnection::doUpdate( long updateId )
+    {
+        long start = millis();
+        
+        char server[200];
+        char url[200];
+        strcpy( server, this->cfg->getString( "ra_url", "???" ) );
+        char * p = strchr( server, '/' );
+        if( p==NULL ) { return 1; }
+        strcpy(url, p);
+        sprintf( url+strlen(url), "/update/%d", updateId );
+        *p = 0;
+        
+        this->logger->log( "UPD server=[%s] url=[%s]", server, url );
+        
+        WiFiClient client;
+
+        if (! client.connect(server, 80)) {
+            this->logger->log("blob connect failed.");
+            return 2;
+        } else {
+            Serial.println("Connected" );
+        }
+
+        char buf[256];
+        sprintf( buf, "GET %s HTTP/1.1", url );
+        sendText( &client, buf );
+
+        sprintf( buf, "Host: %s", server );
+        sendText( &client, buf );
+
+        // autorizacni hlavicka
+        char authHeader[65];
+        this->createDataPayload( (BYTE*)authHeader, (BYTE*)this->session, strlen(this->session) );
+        sprintf( buf, "x-ra-1: %s", authHeader );
+        sendText( &client, buf );
+
+        sendText( &client, (char *)"" );
+
+        long endTimer = millis() + RA_UPDATE_TIMEOUT;
+
+        /**
+         * Stavovy automat pro zpracovani vysledku. Vnitrni stavy:
+         * 0 = cekam na http status line
+         * 1 = cekam na konec hlavicky
+         * 2 = konec hlavicky
+         */
+        int status = 0;
+        int rc = 3;
+
+        Serial.println("");
+
+        hdrContentTypeOK = false;
+        hdrContentLength = 0;
+        buf[0] = 0;
+
+        while( (status!=2) && endTimer > millis() ) {
+            if( !client.connected() ) {
+                this->logger->log( "-disc-");
+                rc = 10;
+                status = 2;
+                break;
+            }
+            while (client.available()) {
+                addChar( client.read() );
+                if( lineComplete ) {
+                    endTimer = millis() + RA_UPDATE_TIMEOUT;
+                    char * line = getLine();
+                    if( status==0 ) {
+                        rc=parseStatusLine( line );
+                        if( rc!=0 ) {
+                            this->logger->log( "UPD status %d", rc );
+                            status = 2;
+                            break;
+                        } 
+                        status = 1;
+                    } else if( status==1 ) {
+                        //D/ this->logger->log( "< %s", line );
+                        if( strlen(line)==0 ) {
+                            // prazdna radka = konec hlavicky
+                            status = 2;
+                            break;
+                        }
+                        analyzeHeader( line, buf  );
+                    }
+                }
+            } // while (client.available()) {
+            Serial.print(".");
+            delay(100);      
+        }
+        
+        Serial.println("");
+
+        if( rc==0 && ( (!hdrContentTypeOK) || (hdrContentLength==0) ) ) {
+            this->logger->log( "UPD bad content type / length" );
+            rc = 11;
+        }
+
+        BYTE serverHashBuffer[32+6+17];
+        BYTE * serverHash = serverHashBuffer + 6;
+        if( rc==0 ) {
+            if( ! decryptBlock( (char*)buf, (char*)serverHashBuffer, 32+6+17 ) ) {
+                this->logger->log( "UPD can't decrypt" );
+                rc = 14;
+            }
+        }
+
+        bool updateStarted = false;
+        if( rc==0 ) {
+            if( ! Update.begin(hdrContentLength) ) {
+                this->logger->log( "UPD Nemohu zacit update o velikosti %d b!", hdrContentLength );
+                rc = 21;
+            }
+            this->logger->log( "UPD start" );
+            updateStarted = true;
+        }
+
+        if( rc==0 ) {
+            this->logger->log( "UPD len=%d", hdrContentLength );
+
+            this->sha256->init();
+            
+            // jsme na konci hlavicky, nacitat po blocich data¨
+            #define DATABUF_LEN 2048
+            byte dataBuf[DATABUF_LEN];
+
+            int dataRemaining = hdrContentLength;
+            int lastLog = dataRemaining;
+
+            while( dataRemaining>0 && endTimer > millis() ) {
+                if( !client.connected() ) {
+                    this->logger->log( "-disc-");
+                    rc = 12;
+                    break;
+                }
+                if( !client.available() ) {
+                    Serial.print(".");
+                    delay(100);   
+                    continue;
+                }
+                int bytesRead = client.readBytes( dataBuf, dataRemaining>DATABUF_LEN ? DATABUF_LEN : dataRemaining );
+                if( bytesRead>0 ) {
+                    endTimer = millis() + RA_UPDATE_TIMEOUT;
+                    // pocitat sha256 hash
+                    this->sha256->update((const BYTE *)dataBuf, bytesRead );
+                    dataRemaining = dataRemaining - bytesRead;
+                    if( lastLog-dataRemaining > 50000 ) {
+                        lastLog = dataRemaining;
+                        Serial.printf( " %d ", dataRemaining/1000 );
+                    }
+                    // poslat data do update
+                    Update.write( (BYTE *)dataBuf, bytesRead );
+                }
+            } // while( dataRemaining>0 ) {
+
+            if( dataRemaining == 0 ) {
+                Serial.println("");
+
+                this->logger->log( "UPD read %d b", hdrContentLength );
+                // zkontrolovat hash
+                this->sha256->final( (BYTE*)server);                // reuse buffer
+                if( memcmp(serverHash,server,32)!=0 ) {
+                    this->logger->log( "UPD invalid hash" );
+                    btohexa( (unsigned char*)server, 32, (char *)url, 200 );    // reuse buffer
+                    this->logger->log( "UPD our hash: %s", url );
+                    //D/ btohexa( (unsigned char*)serverHash, 32, (char *)url, 200 );    // reuse buffer
+                    //D/ this->logger->log( "UPD their hash: %s", url );
+
+                    Update.abort();
+                    rc = 15;
+                } else {
+                    // dokoncit update
+                    if (Update.end() ) {
+                        this->logger->log( "UPD end" );
+                        if (Update.isFinished()) {
+                            this->logger->log( "UPD finished OK!" );
+                            // nastavit znacku, ze je treba restartovat (ale bylo by dobre zkusit log shiping)
+                            this->shouldRestart = true;
+                            rc = 0;
+                        } else {
+                            this->logger->log( "UPD ERR not finished, err #%d %s", Update.getError(), Update.errorString() );
+                            rc = 22;
+                        }
+                    } else {
+                        this->logger->log( "UPD ERR #%d %s", Update.getError(), Update.errorString() );
+                        rc = 23;
+                    }
+                }
+            } else {
+                this->logger->log( "UPD nenacteno %d b", dataRemaining );
+                rc = 13;
+            }
+        } // if( status==2 && rc==0 ) {
+
+        if( updateStarted && rc!=0 ) {
+            this->logger->log( "UPD aborting" );
+            Update.abort();
+        }
+
+        client.stop();
+        
+        this->logger->log( "UPD rc=%d; %d s", rc, ((millis()-start)/1000) );
+        
+        return rc;        
+    }
+#endif
