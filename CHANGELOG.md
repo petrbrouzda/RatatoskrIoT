@@ -1,5 +1,20 @@
 # Changelog
 
+# 2021-05-13 verze 5.3.3
+
+MCU
+- Možnost zrestartovat zařízení zasláním konfigurační položky @restart=1
+- Při zapnutém log shippingu porušení zásobníku, pokud má zařízení synchronizovaný čas z internetu.
+
+----
+# 2021-05-05
+
+Server:
+- U logů ra-conn a cron se vypisuje ID procesu pro snadné párování déletrvajících operací.
+- Při příjmu záznamů se neaktualizují informace v tabulce sensors, pokud je záznam starší než předešlý.
+- Lépe formátovaný výpis logu ze zařízení.
+
+----
 # 2021-04-23 verze 5.3.2
 
 **Velká změna - podpora pro log shipping.** Logy ze zařízení mohou být automaticky předávány na server. 

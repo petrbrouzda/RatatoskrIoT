@@ -10,7 +10,7 @@
 TextCircularBuffer::TextCircularBuffer( char * buffer, int bufferSize )
 {
     this->ptr = buffer;
-    this->size = bufferSize;
+    this->size = bufferSize - 1;
     this->currentPos = 0;
     this->overwritten = 0;
     this->lastData = 0;
@@ -21,7 +21,7 @@ TextCircularBuffer::TextCircularBuffer( char * buffer, int bufferSize )
 
 void TextCircularBuffer::write( char * text )
 {
-    char timestamp[10];
+    char timestamp[14];
     sprintf( timestamp, "%d> ", time(NULL) );
     int len = strlen( text );
     int timestampLen = strlen(timestamp);
@@ -107,7 +107,7 @@ char * TextCircularBuffer::getText()
     } else if( this->avail1() ) {
         return this->getText1();
     } else {
-        return "";
+        return (char*)"";
     }
 }
 

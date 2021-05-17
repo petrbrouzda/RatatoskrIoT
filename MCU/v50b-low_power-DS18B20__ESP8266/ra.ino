@@ -288,9 +288,16 @@ void raLoop()
       while( ra->process() ) {
         // nic, to je spravne
       }
+
+      long restart = 0;
       
       // pokud jsme ze serveru dostali aktualizaci konfigurace, je treba ji ulozit
       if( config.isDirty() ) {
+        restart = config.getLong("@restart",0);
+        if( restart==1 ) {
+          logger->log( "restart request!");
+          config.setValue( "@restart", "0" );
+        }
         ra->conn->setConfigVersion( (int)config.getLong("@ver",0) );
         saveConfig( &config );
 
@@ -333,6 +340,10 @@ void raLoop()
           }
         }
       #endif
+
+      if( restart==1 ) {
+        ESP.restart();
+      }
   }
 
   // spravuje si RA samo wifi?

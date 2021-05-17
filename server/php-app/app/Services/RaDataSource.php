@@ -301,7 +301,7 @@ class RaDataSource
             $values['imp_count'] = $impCount;
             $values['data_session'] = $dataSession;
         }
-        $this->database->query('UPDATE sensors SET', $values, 'WHERE id = ?', $sensor->id );
+        $this->database->query('UPDATE sensors SET', $values, 'WHERE id = ? AND last_data_time < ?', $sensor->id , $msgTime );
     }
 
 

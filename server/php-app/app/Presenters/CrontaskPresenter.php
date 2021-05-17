@@ -167,7 +167,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     /**
      * Zkontroluje stav senzoru a pripravi notifikace, pokud jsou nejake ve spatnem stavu
      */
-    private function checkSensors()
+    private function checkSensors( $logger )
     {   
         $rows = $this->datasource->getSensors();
         foreach ($rows as $sensor) {
@@ -194,7 +194,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     /**
      * Zpracuje cekajici notifikace
      */
-    private function sendNotificationMails()
+    private function sendNotificationMails( $logger )
     {
         // id	rauser_id	device_id	sensor_id	event_type	event_ts	status	custom_text	out_value	
         // user_id	last_login	dev_name	dev_desc	s_name	s_desc	u1_name	u1_email
@@ -246,7 +246,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
                     ";
             }
 
-            Logger::log( self::NAME, Logger::INFO, "Notifikace #{$row['id']} '{$prefix} {$subject}' pro {$row['u1_email']}" );
+            $logger->write(  Logger::INFO, "Notifikace #{$row['id']} '{$prefix} {$subject}' pro {$row['u1_email']}" );
 
             $this->mailService->sendMail( 
                 $row['u1_email'],
@@ -271,9 +271,9 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
      *      - nastavi status=1
      * - spocte hodinove prumery/sumy a ulozi je do tabulky, pokud to pro dany senzor ma delat
      */
-    private function processSensorHour( $sensorId, $date, $hour )
+    private function processSensorHour( $sensorId, $date, $hour, $logger )
     {
-        Logger::log( self::NAME, Logger::DEBUG,  "Measures for sensor=$sensorId; $date $hour" );
+        $logger->write(  Logger::DEBUG,  "Measures for sensor=$sensorId; $date $hour" );
 
         $min = NULL;
         $min_time = NULL;
@@ -284,7 +284,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
 
         $sensor = $this->datasource->getSensor($sensorId);
         if( ! $sensor ) {
-            Logger::log( self::NAME, Logger::ERROR, "Nenalezen senzor {$sensorId}!" );
+            $logger->write(  Logger::ERROR, "Nenalezen senzor {$sensorId}!" );
             return;
         }
         $rows = $this->datasource->getRecordsForSensorHour( $sensorId, $date, $hour );
@@ -342,7 +342,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     /**
      * Zpracovava zdrojova data a pocita z nich hodinove sumarizace
      */
-    private function processMeasures()
+    private function processMeasures( $logger )
     {
         $records = $this->datasource->getRecordsForProcessing( $this->batchSize );
 
@@ -366,7 +366,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
                 $currentHour=$hour;
 
                 // zpracujeme danou hodinu a dany senzor 
-                $this->processSensorHour( $currentSensor, $currentDate, $currentHour );
+                $this->processSensorHour( $currentSensor, $currentDate, $currentHour, $logger );
 
                 $this->processedBatches++;
             }
@@ -377,7 +377,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
         $this->template->records = $this->processedRecords;
         $this->template->time = time() - $this->startTime;
 
-        Logger::log( self::NAME, Logger::INFO,  "Measures: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$this->template->time} sec" );
+        $logger->write(  Logger::INFO,  "Measures: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$this->template->time} sec" );
     }
 
 
@@ -387,9 +387,9 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
      *      - nastavi status=1
      * - spocte  prumery a ulozi je do tabulky
      */
-    private function processSensorSummary( $sensorId, $date )
+    private function processSensorSummary( $sensorId, $date, $logger )
     {
-        Logger::log( self::NAME, Logger::DEBUG,  "Summary for sensor=$sensorId; $date" );
+        $logger->write(  Logger::DEBUG,  "Summary for sensor=$sensorId; $date" );
 
         $min = NULL;
         $min_time = NULL;
@@ -478,7 +478,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     /**
      * Zpracovava hodinove sumarizace a pocita z nich denni sumy
      */
-    private function processSumdata()
+    private function processSumdata( $logger )
     {
         $this->processedBatches = 0;
         $this->processedRecords = 0;
@@ -502,7 +502,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
                 $currentDate=$date; 
 
                 // zpracujeme danou hodinu a dany senzor 
-                $this->processSensorSummary( $currentSensor, $currentDate );
+                $this->processSensorSummary( $currentSensor, $currentDate, $logger );
 
                 $this->processedBatches++;
             }
@@ -513,7 +513,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
         $this->template->records = $this->processedRecords;
         $this->template->time = time() - $this->startTime;
 
-        Logger::log( self::NAME, Logger::INFO,  "Summary: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$this->template->time} sec" );
+        $logger->write( Logger::INFO,  "Summary: done. {$this->processedBatches} batches, {$this->processedRecords} records in {$this->template->time} sec" );
     }
 
     const RESIZE_X = 150;
@@ -527,9 +527,9 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
      * 1 = non-black
      * 2 = black+lamp
      */ 
-    private function testImage(  $filename )
+    private function testImage(  $filename, $logger )
     {
-        Logger::log( self::NAME, Logger::DEBUG , "  img: $filename" );
+        $logger->write( Logger::DEBUG , "  $filename" );
         $count = 0;
 
         try {
@@ -551,7 +551,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
                     ) {
                         $count++;
                         if( $count > self::COUNT_THRESHOLD ) {
-                            Logger::log( self::NAME,  Logger::DEBUG , "    at $x,$y : $r,$g,$b" );
+                            $logger->write( Logger::DEBUG , "    at $x,$y : $r,$g,$b" );
                             return 1;
                         }
                     }
@@ -559,22 +559,22 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
             }
 
             if( $count==0 ) {
-                Logger::log( self::NAME, Logger::DEBUG , "    black" );
+                $logger->write(  Logger::DEBUG , "    black" );
                 return 0;
             } else {
-                Logger::log( self::NAME, Logger::DEBUG , "    black+lamp {$count} px" );
+                $logger->write(  Logger::DEBUG , "    black+lamp {$count} px" );
                 return 2;
             }
 
         } catch (\Nette\Utils\ImageException $e) {
-            Logger::log( self::NAME, Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+            $logger->write(  Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
             return 1;
         }
 
     }
 
 
-    private function processImages()
+    private function processImages( $logger )
     {
         $ctImages = 0;
         $ctBlack = 0;
@@ -586,9 +586,9 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
                 break;
             }
 
-            Logger::log( self::NAME,  Logger::DEBUG , "{$image['id']}" );
+            $logger->write(  Logger::DEBUG , "img {$image['id']}" );
             $file = FileSystem::normalizePath( __DIR__ . "/../../data/" . $image['filename'] );
-            $out = $this->testImage( $file );
+            $out = $this->testImage( $file, $logger );
             $ctImages++;
             if( $out==0 ) {
                 $this->datasource->updateImageAll( $image['id'], $image['description'] . ' BLACK');
@@ -601,17 +601,17 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
             }
         }
 
-        Logger::log( self::NAME, Logger::INFO,  "Images: done. $ctImages images, $ctBlack black." );
+        $logger->write(  Logger::INFO,  "Images: done. $ctImages images, $ctBlack black." );
     }
 
 
-    private function processPrelogin()
+    private function processPrelogin( $logger )
     {
         $limit = (new DateTime())->modify('-3 min');
         $rows = $this->datasource->getOldPrelogins( $limit );
         foreach ($rows as $row)
         {
-            Logger::log( self::NAME, Logger::INFO, "Unused prelogin for dev {$row['device_id']} from IP {$row['remote_ip']}" );
+            $logger->write( Logger::INFO, "Unused prelogin for dev {$row['device_id']} from IP {$row['remote_ip']}" );
             $this->datasource->markDeviceLoginProblem( $row['device_id'], $row['started'] );
             $this->datasource->deletePrelogin( $row['id'] );
         }
@@ -654,28 +654,30 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
 
         try {
 
+            $logger = new Logger( "cron" );
+
             $totalEnde = time() + $this->maxRunTime2  + $this->maxRunTime1;
             $this->startTime = time();
             $this->endTime = time() + $this->maxRunTime1;
             
-            $this->checkSensors();
-            $this->sendNotificationMails();
-            $this->processPrelogin();
+            $this->checkSensors( $logger );
+            $this->sendNotificationMails( $logger );
+            $this->processPrelogin( $logger );
 
-            $this->processMeasures();
+            $this->processMeasures( $logger );
 
             $this->startTime = time();
             $this->endTime = time() + $this->maxRunTime2;
-            $this->processSumdata();
+            $this->processSumdata( $logger );
 
             // nechame na obrazky zbytek do celkoveho maxima delky behu
             $this->endTime = time() + $this->maxRunTime3;
             if( $this->endTime >  $totalEnde ) {
                 $this->endTime = $totalEnde;
             }
-            $this->processImages();
+            $this->processImages( $logger );
         } catch (\Exception $e) {
-            Logger::log( self::NAME, Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+            $logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
         }
     }
 
@@ -780,8 +782,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
 
         try {
         
-            $logger = new Logger( "cron" );
-            $logger->setContext("daily");
+            $logger = new Logger( "cron", "daily" );
             
             $this->datasource->deleteNotifications();
             $this->deleteData( $logger );

@@ -80,7 +80,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             $httpRequest = $this->getHttpRequest();
 
             $remoteIp = $httpRequest->getRemoteAddress(); 
-            $logger->setContext("La;{$remoteIp}");
+            $logger->setContext("La");
 
             $postSize = strlen( $httpRequest->getRawBody() );
             $logger->write( Logger::INFO, "logina+ {$postSize}b IP:{$remoteIp}" );
@@ -91,7 +91,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
                 throw new \Exception("Bad request (1).");                
             }
             $login = Strings::trim($radky[0]);
-            $logger->setContext("La;{$remoteIp};{$login}");
+            $logger->setContext("La;{$login}");
 
             $inToken = Strings::trim($radky[1]); 
             if( Strings::length( $login ) == 0  ) {
@@ -227,7 +227,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             $httpRequest = $this->getHttpRequest();
 
             $remoteIp = $httpRequest->getRemoteAddress(); 
-            $logger->setContext("Lb;{$remoteIp}");
+            $logger->setContext("Lb");
 
             $postSize = strlen( $httpRequest->getRawBody() );
             $logger->write( Logger::INFO, "loginb+ v{$v} {$postSize}b IP:{$remoteIp}" );
@@ -252,7 +252,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             }
 
             $sessionDevice = $this->datasource->checkLoginSession( $loginSessionData[0], $loginSessionData[1] );
-            $logger->setContext("Lb;{$remoteIp};D:{$sessionDevice->deviceId}");
+            $logger->setContext("Lb;D:{$sessionDevice->deviceId}");
 
             $appInfoDecoded = $this->decryptDataBlock( $inDataBlock, $sessionDevice->sessionKey, $logger );
             //D/ $logger->write( Logger::INFO, "[{$appInfoDecoded}]" );
@@ -451,11 +451,11 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             $httpRequest = $this->getHttpRequest();
 
             $remoteIp = $httpRequest->getRemoteAddress(); 
-            $logger->setContext("LS;{$remoteIp}");
+            $logger->setContext("LS");
 
             $payload = $httpRequest->getRawBody();
             $postSize = strlen( $payload );
-            $logger->write( Logger::INFO, "data+ post {$postSize}b");
+            $logger->write( Logger::INFO, "log {$postSize}b {$remoteIp}");
 
             $session = $httpRequest->getHeader('x-ra-1');
             if( Strings::length( $session ) == 0  ) {
@@ -468,7 +468,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             }
             $sessionDevice = $this->datasource->checkSession( $sessionData[0], $sessionData[1] );
             //D $logger->write( Logger::INFO,  $sessionDevice );
-            $logger->setContext("LS;{$remoteIp};D:{$sessionDevice->deviceId}");
+            $logger->setContext("LS;D:{$sessionDevice->deviceId}");
 
             $hash = $this->decryptDataBlock( $httpRequest->getHeader('x-ra-2'), $sessionDevice->sessionKey, $logger );
             //D/ $logger->write( Logger::DEBUG, 'hash incoming: ' . bin2hex($hash) );
@@ -481,7 +481,10 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             }
 
             $loggerDevice = new Logger( "dev-{$sessionDevice->deviceId}" );
-            $loggerDevice->write( Logger::INFO, "\n" .  $payload );
+            $loggerDevice->write( Logger::INFO, "+++\n" .  $payload );
+            $loggerDevice->write( Logger::INFO, "---" );
+
+            $logger->write( Logger::DEBUG, "OK" );
 
             $this->template->result = "OK";
             
@@ -539,10 +542,10 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             $httpRequest = $this->getHttpRequest();
 
             $remoteIp = $httpRequest->getRemoteAddress(); 
-            $logger->setContext("D;{$remoteIp}");
+            $logger->setContext("D");
 
             $postSize = strlen( $httpRequest->getRawBody() );
-            $logger->write( Logger::INFO, "data+ post {$postSize}b");
+            $logger->write( Logger::INFO, "data+ {$postSize}b {$remoteIp}");
             //D $logger->write( Logger::INFO, "[" . $httpRequest->getRawBody() ."]" );
 
             $radky = explode ( "\n" , $httpRequest->getRawBody(), 3 );
@@ -562,7 +565,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             }
             $logger->write( Logger::INFO, "S:{$sessionData[0]}"); 
             $sessionDevice = $this->datasource->checkSession( $sessionData[0], $sessionData[1] );
-            $logger->setContext("D;{$remoteIp};D:{$sessionDevice->deviceId}");
+            $logger->setContext("D;D:{$sessionDevice->deviceId}");
 
             //D $logger->write( Logger::INFO,  $sessionDevice );
             
@@ -623,10 +626,10 @@ final class RaPresenter extends Nette\Application\UI\Presenter
         try {
             $httpRequest = $this->getHttpRequest();
             $remoteIp = $httpRequest->getRemoteAddress(); 
-            $logger->setContext("B;{$remoteIp}");            
+            $logger->setContext("B");            
 
             $postSize = strlen( $httpRequest->getRawBody() );
-            $logger->write( Logger::INFO, "blob+ post {$postSize} B");
+            $logger->write( Logger::INFO, "blob+ {$postSize}b {$remoteIp}");
             // $logger->write( Logger::INFO, "[" . $httpRequest->getRawBody() ."]" );
 
             $radky = explode ( "\n" , $httpRequest->getRawBody() );
@@ -645,7 +648,7 @@ final class RaPresenter extends Nette\Application\UI\Presenter
             }
             $logger->write( Logger::INFO, "S:{$sessionData[0]}"); 
             $sessionDevice = $this->datasource->checkSession( $sessionData[0], $sessionData[1] );
-            $logger->setContext("B;{$remoteIp};D:{$sessionDevice->deviceId}");
+            $logger->setContext("B;D:{$sessionDevice->deviceId}");
 
             //D $logger->write( Logger::INFO,  $sessionDevice );
             

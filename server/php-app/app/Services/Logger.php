@@ -71,12 +71,16 @@ class Logger
     public function __construct( $fileName, $context=NULL )
     {
         $this->fileName = $fileName;
-        $this->context = $context;
+        if( $context==NULL ) {
+            $this->context = getmypid();
+        } else {
+            $this->context = getmypid() . ';' . $context;
+        }
     }
 
     public function setContext( $context )
     {
-        $this->context = $context;
+        $this->context = getmypid() . ';' . $context;
     }
 
     public function write( $level, $msg )

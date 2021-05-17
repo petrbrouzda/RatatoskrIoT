@@ -7,7 +7,12 @@
 - Serverová aplikace je pro PHP 7.2+, data ukládá do MySQL.
 - Komunikační protokol je nad http, přenášený obsah je šifrovaný (AES-256-CBC) a k výměně klíčů se používá ECDH.
 
-Detailnější popis "k čemu to je", "k čemu to není" a "jak to použít" najdete zde: https://pebrou.wordpress.com/2021/01/07/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-1-n/
+Detailnější popis: 
+- [Úvod - k čemu to je, k čemu to není](https://pebrou.wordpress.com/2021/01/07/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-1-n/)
+- [Bezpečnost - jak je to udělané](https://pebrou.wordpress.com/2021/01/14/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-2-n/)
+- [Aplikace na mikrokontroléru](https://pebrou.wordpress.com/2021/01/15/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-3-n/)
+- [Aplikace na serveru - popis, instalace](https://pebrou.wordpress.com/2021/01/18/kostra-hotove-iot-aplikace-pro-esp32-esp8266-a-k-tomu-nejaky-server-4-4/)
+- [Replikace dat do jiného systému](https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/)
 
 Co je v repository?
 - V adresáři [MCU](MCU) jsou ukázkové aplikace pro ESP32 a ESP8266.
