@@ -249,7 +249,7 @@ bool checkWifiStatus()
   if( wifiLastStatus!=newStatus )
   {
     if( newStatus == WL_CONNECTED) {
-
+      wifiOK = true;
       ra->conn->setRssi( WiFi.RSSI() );
 
       IPAddress ip = WiFi.localIP();
@@ -260,6 +260,7 @@ bool checkWifiStatus()
       wifiStatus_Connected( newStatus, ((millis()-lastConnected)/1000L), logger->printed );
       
     } else {
+      wifiOK = false;
       
       if( wifiLastStatus==WL_CONNECTED ) {
         lastConnected = millis();

@@ -173,12 +173,6 @@ void networkConfig( const char * configApPass, bool runWifiOnStartup )
           // password will not be shown - default value is not set
           WiFiManagerParameter custom_pass("ra_pass", "RA passphrase", "", 31);
           wifiManager.addParameter(&custom_pass);
-
-          //!!! nestandardni uprava - prepoctovy faktor
-          WiFiManagerParameter custom_prepocet("prepocet", "Prepocet na kWh (1.05 nebo 0.105)", config.getString("prepocet","1.05"), 31);
-          wifiManager.addParameter(&custom_prepocet);
-          //!!!
-          
       //--CONFIG--- custom parameters for WifiManager ----------------------------------------------------  
 
       char apName[20];
@@ -196,11 +190,6 @@ void networkConfig( const char * configApPass, bool runWifiOnStartup )
               config.setValue( "ra_url", custom_net_url.getValue());
               config.setValue( "ra_dev_name", custom_dev_name.getValue());
               config.setValue( "$ra_pass", custom_pass.getValue());
-
-              //!!! nestandardni uprava - prepoctovy faktor
-              config.setValue( "prepocet", custom_prepocet.getValue());
-              //!!!
-
           //--CONFIG--- custom parameters for WifiManager ----------------------------------------------------
 
           // vypis upravene konfigurace:
@@ -260,7 +249,7 @@ bool checkWifiStatus()
   if( wifiLastStatus!=newStatus )
   {
     if( newStatus == WL_CONNECTED) {
-
+      wifiOK = true;
       ra->conn->setRssi( WiFi.RSSI() );
 
       IPAddress ip = WiFi.localIP();
@@ -271,6 +260,7 @@ bool checkWifiStatus()
       wifiStatus_Connected( newStatus, ((millis()-lastConnected)/1000L), logger->printed );
       
     } else {
+      wifiOK = false;
       
       if( wifiLastStatus==WL_CONNECTED ) {
         lastConnected = millis();

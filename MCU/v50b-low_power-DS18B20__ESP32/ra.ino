@@ -242,7 +242,7 @@ void ratatoskr_startup( bool initSerial )
    */ 
   bool raShipLogs()
   {
-    if( !doLogShipping || !wifiOK ) {
+    if( !doLogShipping || !wifiOK || !wifiPoweredOn ) {
       return true;
     }
 

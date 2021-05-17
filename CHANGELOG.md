@@ -1,5 +1,11 @@
 # Changelog
 
+# 2021-05-17 
+
+MCU
+- Už v době volání callbacku wifiStatus_* má proměnná **wifiOK** správnou hodnotu (dříve měla správnou hodnotu až **po** skončení callbacku).
+
+----
 # 2021-05-13 verze 5.3.3
 
 MCU
