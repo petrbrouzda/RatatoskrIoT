@@ -224,12 +224,12 @@ int cameraPhoto()
   int hmirror = img_rotate & 1;
   int vflip = (img_rotate & 2) >> 1;
 
-  int cam_agc_gain = (int)config.getLong( "cam_agc_gain", 6 );
+  int cam_agc_gain = (int)config.getLong( "cam_agc_gain", 4 );
   if( cam_agc_gain>6 ) cam_agc_gain = 6;
   if( cam_agc_gain<0 ) cam_agc_gain = 0;
 
 
-  int cam_awb = (int)config.getLong( "cam_awb", -1 );
+  int cam_awb = (int)config.getLong( "cam_awb", 1 );
   if( cam_awb<-1 || cam_awb>4 ) {
     cam_awb = -1;
   }
