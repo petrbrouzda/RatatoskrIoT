@@ -61,4 +61,78 @@ final class JsonPresenter extends BasePresenter
         $this->sendJson($data);
     }
 
+    // http://lovecka.info/ra/json/meteo/aaabbb/2/?temp=bd358d05&rain=rain
+    public function renderMeteo( $id, $token, $temp, $rain )
+    {
+        $device = $this->datasource->getDevice( $id );
+        if( ! $device ) {
+            $this->error('Zařízení nebylo nalezeno');
+        }
+        if( !$token || ($device['json_token'] !== $token) ) {
+            $this->error('Token nesouhlasí.');
+        }
+        $tempId = -1;
+        $rainId = -1;
+        $sensors = $this->datasource->getDeviceSensors( $id );
+        foreach( $sensors as $sensor ) {
+            if( $sensor['name'] === $temp ) {
+                $tempId = $sensor['id'];
+                $tempCurrent = $sensor['last_out_value'];
+            }
+            if( $sensor['name'] === $rain ) {
+                $rainId = $sensor['id'];
+            }
+        }
+
+        if( $tempId==-1 || $rainId==-1) {
+            throw new Exception( "Nenalezen preklad ID." );
+        }
+
+        $date = (new DateTime())->modify('-7 day')->format('Y-m-d');
+        $rainTyden = $this->datasource->meteoGetWeekData( $rainId, $date );
+        $tempTyden = $this->datasource->meteoGetWeekData( $tempId, $date );
+        $date = (new DateTime())->modify('-1 day')->format('Y-m-d');
+        $rainVcera = $this->datasource->meteoGetDayData( $rainId, $date );
+        $tempVcera = $this->datasource->meteoGetDayData( $tempId, $date );
+        $date2 = (new DateTime())->format('Y-m-d');
+        $rainNoc = $this->datasource->meteoGetNightData( $rainId, $date, $date2 );
+        $tempNoc = $this->datasource->meteoGetNightData( $tempId, $date, $date2 );
+        $rainDnes = $this->datasource->meteoGetDayData( $rainId, $date2 );
+        $tempDnes = $this->datasource->meteoGetDayData( $tempId, $date2 );
+
+        $tyden = [
+            'rain' => $rainTyden['celkem'],
+            'temp_min' => $tempTyden['minimum'],
+            'temp_max' => $tempTyden['maximum'],
+        ];
+        $vcera = [
+            'rain' => $rainVcera['celkem'],
+            'temp_min' => $tempVcera['minimum'],
+            'temp_max' => $tempVcera['maximum'],
+        ];
+        $noc = [
+            'rain' => $rainNoc['celkem'],
+            'temp_min' => $tempNoc['minimum'],
+            'temp_max' => $tempNoc['maximum'],
+        ];
+        $dnes = [
+            'rain' => $rainDnes['celkem'],
+            'temp_min' => $tempDnes['minimum'],
+            'temp_max' => $tempDnes['maximum'],
+        ];
+        $data = [
+            'tyden' => $tyden ,
+            'vcera' => $vcera,
+            'noc' => $noc,
+            'dnes' => $dnes,
+            'temp_now' => $tempCurrent,
+        ];
+
+        $response = $this->getHttpResponse();
+        $response->setHeader('Cache-Control', 'no-cache');
+        $response->setExpiration('1 sec'); 
+
+        $this->sendJson($data);
+    }
+
 }

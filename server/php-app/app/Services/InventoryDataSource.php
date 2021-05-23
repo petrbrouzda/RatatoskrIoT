@@ -592,7 +592,43 @@ class InventoryDataSource
             and device_id= ?
         ', $updateId , $deviceId  );
     }
+
     
+    public function meteoGetWeekData( $sensorId, $dateFrom )
+    {
+        return $this->database->fetch(  '
+            select sum(sum_val) as celkem, max(max_val) as maximum, min(min_val) as minimum 
+            from sumdata
+            where sensor_id = ?
+            and rec_date > ?
+            and sum_type = 2
+        ', $sensorId, $dateFrom  );
+    }
+
+    public function meteoGetDayData( $sensorId, $date )
+    {
+        return $this->database->fetch(  '
+            select sum(sum_val) as celkem, max(max_val) as maximum, min(min_val) as minimum 
+            from sumdata
+            where sensor_id = ?
+            and rec_date = ?
+            and sum_type = 2
+        ', $sensorId, $date  );
+    }
+
+    public function meteoGetNightData( $sensorId, $dateYesterday, $dateToday )
+    {
+        return $this->database->fetch(  '
+            select sum(sum_val) as celkem, max(max_val) as maximum, min(min_val) as minimum from sumdata
+            where sensor_id = ?
+            and 
+            ( ( rec_date = ? and rec_hour >=20 ) 
+            or 
+            (  rec_date = ? and rec_hour <=6  ) 
+            )
+            and sum_type = 1
+        ', $sensorId, $dateYesterday, $dateToday  );
+    }
 }
 
 
