@@ -1,5 +1,12 @@
 # Changelog
 
+# 2021-05-23
+
+Server
+- Oprava zpracování dat od impulzních senzorů
+
+
+----
 # 2021-05-17 
 
 MCU
