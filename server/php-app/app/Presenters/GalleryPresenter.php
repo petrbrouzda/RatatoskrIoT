@@ -150,7 +150,10 @@ final class GalleryPresenter extends BasePresenter
 
         $blob = $this->datasource->getBlob( $id, $blobid );
         if( ! $blob ) {
-            $this->error('Soubor nenalezen nebo k němu nejsou práva.');
+            // $this->error('Soubor nenalezen nebo k němu nejsou práva.', Nette\HTTP\Response::S404_NOT_FOUND );
+            $response->setCode(Nette\Http\Response::S404_NOT_FOUND);
+            $this->terminate();
+            return;
         }
 
         $fileName = 

@@ -214,15 +214,19 @@
 {if ($device['json_token'])}
 <div class="px-2 pb-2 pt-4">
     <h3>Data zařízení</h3>
-    Data ze senzorů zařízení ve formě JSON jsou dostupná zde: <b><a href="{$jsonUrl}">{$jsonUrl}</a></b>
-    <br><small>Každý, kdo zná toto URL, si může data zobrazit. Přístup k JSON souboru již dále <b>není chráněn heslen</b>.</small>
+    Data ze senzorů zařízení ve formě JSON jsou dostupná zde: 
+    <br><small><a href="{$jsonUrl}">{$jsonUrl}</a></small>
+    <br>Pokud je zařízení meteostanice se senzory teploty a srážek, lze získat data pro display meteostanice zde:
+    <br><small><a href="{$jsonUrl2}">{$jsonUrl2}</a></small>
+    <br><small>Každý, kdo zná tato URL, si může data zobrazit. Přístup k JSON souboru již dále <b>není chráněn heslen</b>.</small>
 </div>
 {/if}
 
 {if ($device['blob_token'])}
 <div class="px-2 pb-2 pt-4">
     <h3>Galerie obrázků</h3>
-    Galerie obrázků (pokud je zařízení generuje) je dostupná zde: <b><a href="{$blobUrl}">{$blobUrl}</a></b>
+    Galerie obrázků (pokud je zařízení generuje) je dostupná zde: 
+    <br><small><a href="{$blobUrl}">{$blobUrl}</a></small>
     <br><small>Každý, kdo zná toto URL, si může data zobrazit. Přístup k obrázkům již dále <b>není chráněn heslen</b>.</small>
 </div>
 {/if}

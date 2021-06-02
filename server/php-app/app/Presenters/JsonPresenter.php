@@ -78,14 +78,37 @@ final class JsonPresenter extends BasePresenter
             if( $sensor['name'] === $temp ) {
                 $tempId = $sensor['id'];
                 $tempCurrent = $sensor['last_out_value'];
+                $lastDataTime = $sensor['last_data_time'];
+                $maxDataTime = $sensor['msg_rate'];
             }
             if( $sensor['name'] === $rain ) {
                 $rainId = $sensor['id'];
             }
         }
 
+        if( isset($lastDataTime) )  {
+            if( (time() - ($lastDataTime->getTimestamp())) >  $maxDataTime ) {
+                $dataValid = "N";
+            } else {
+                $dataValid = "Y";
+            }
+        } else {
+            $dataValid = "N";
+        }
+
+
+        $response = $this->getHttpResponse();
+        $response->setHeader('Cache-Control', 'no-cache');
+        $response->setExpiration('1 sec'); 
+
+
         if( $tempId==-1 || $rainId==-1) {
-            throw new Exception( "Nenalezen preklad ID." );
+            $data = [
+                'error' => 'Nenalezen senzor daneho jmena.'
+            ];
+            $this->sendJson($data);
+            $this->terminate();
+            return;
         }
 
         $date = (new DateTime())->modify('-7 day')->format('Y-m-d');
@@ -120,17 +143,19 @@ final class JsonPresenter extends BasePresenter
             'temp_min' => $tempDnes['minimum'],
             'temp_max' => $tempDnes['maximum'],
         ];
+        $nyni = [
+            'temp' => $tempCurrent,
+            'valid' => $dataValid,
+            'timestamp' => $lastDataTime
+        ];
         $data = [
             'tyden' => $tyden ,
             'vcera' => $vcera,
             'noc' => $noc,
             'dnes' => $dnes,
+            'nyni' => $nyni,
             'temp_now' => $tempCurrent,
         ];
-
-        $response = $this->getHttpResponse();
-        $response->setHeader('Cache-Control', 'no-cache');
-        $response->setExpiration('1 sec'); 
 
         $this->sendJson($data);
     }

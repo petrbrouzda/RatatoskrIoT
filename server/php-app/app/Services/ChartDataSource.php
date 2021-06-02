@@ -12,6 +12,7 @@ use \App\Model\SensorDataSeries;
 use \App\Model\ChartPoint;
 use \App\Model\View;
 use \App\Model\ViewItem;
+use \App\Services\Logger;
 
 class ChartDataSource 
 {
@@ -203,6 +204,14 @@ class ChartDataSource
         return $rc;
     }
 
+    private function computeOffsetWeeksum( $date, $startTs ) : int
+    {
+        $rc = $date->getTimestamp();
+        $rc += 1*86400 + 12*3600;
+        $rc -= $startTs;
+        return $rc;
+    }
+
     /**
      * Vraci data pro graf z min/max/avg hodnot dennich/hodinovych sumarizaci.
      * 
@@ -321,6 +330,85 @@ class ChartDataSource
                     $rc->pushPoint( new ChartPoint( $maxRelTime, floatval($row->max_val)  ) , TRUE);
                 } 
             }
+        }
+
+        // Debugger::log( $rc->toString( TRUE ) );
+
+        return $rc;
+    }
+
+
+
+    public function getSensorData_weeksummary( $sensors, $dateTimeFrom, $intervalLenDays ) : SensorDataSeries
+    {
+        Logger::log( 'webapp', Logger::DEBUG ,  "weeksumary < $dateTimeFrom, $intervalLenDays" ); 
+
+        // pokud startTs neni pondeli, vzit nejblizsi predesle pondeli
+        $denVTydnu = intval($dateTimeFrom->format('N'));
+        if( $denVTydnu!=1 ) {
+            $offset = $denVTydnu-1;
+            $dateTimeFrom->modify( "-$offset day");
+        }
+        $zbytek = $intervalLenDays % 7;
+        if( $zbytek!=0 ) {
+            $intervalLenDays = 7 * (intval($intervalLenDays / 7)+1);
+        }
+        Logger::log( 'webapp', Logger::DEBUG ,  "weeksumary > $dateTimeFrom, $intervalLenDays" ); 
+
+        $startTs = $dateTimeFrom->getTimestamp();
+        $dateTimeTo = $dateTimeFrom->modifyClone('+' . $intervalLenDays . ' day');   
+
+        $rc = new SensorDataSeries( $sensors[0] );
+
+        $sensorList = "";
+        foreach( $sensors as $sensor ) {
+            if( strlen($sensorList)>0 ) {
+                $sensorList .= ",";
+            }
+            $sensorList .= intval($sensor->id);
+        }
+
+        $result = $this->database->query("
+            SELECT sensor_id, rec_date, WEEK(rec_date,3) as week, rec_hour, min_val, min_time, max_val, max_time, avg_val, sum_val
+            from sumdata
+            where rec_date >= ?
+            and rec_date < ?
+            and sensor_id in ( $sensorList )
+            and sum_type = 2
+            order by rec_date asc, rec_hour asc
+        ", $dateTimeFrom , $dateTimeTo  );
+
+        // Debugger::log( "loading  $sensorId, $dateTimeFrom, $intervalLenDays, $mode " );
+
+        $prevWeek = NULL;
+        $curRelTime = NULL;
+        $curSum = 0;
+
+        // poznamka - casy TIME se vraceji jako PHP DateInterval
+        foreach ($result as $row) {
+            // Debugger::log( $row );
+
+            $relTime = $this->computeOffsetWeeksum( $row->rec_date, $startTs );
+
+            if( $prevWeek===NULL ) {
+                $prevWeek = $row->week;
+                $curRelTime = $relTime;
+                $curSum = floatval($row->sum_val);
+            }
+
+            if( $prevWeek != $row->week ) {
+                $rc->pushPoint( new ChartPoint( $curRelTime, $curSum, TRUE ) );
+
+                $prevWeek = $row->week;
+                $curRelTime = $relTime;
+                $curSum = floatval($row->sum_val);
+            } else {
+                $curSum += floatval($row->sum_val);
+            }
+        }
+
+        if( $prevWeek!==NULL ) {
+            $rc->pushPoint( new ChartPoint( $curRelTime, $curSum, TRUE ) );
         }
 
         // Debugger::log( $rc->toString( TRUE ) );

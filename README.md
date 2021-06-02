@@ -24,6 +24,24 @@ Co je v repository?
 
 Detailní informace o změnách najdete  v souboru [CHANGELOG.md](CHANGELOG.md)
 
+### **2021-06-02**
+
+Server
+- Nový typ datového zdroje pro grafy - **týdenní součet.** Hodí se pro týdenní sumu srážek. Upraví počáteční datum tak, aby bylo v pondělí; 
+  upraví délku grafu na celé týdny. 
+  https://lovecka.info/ra/chart/view/LoveckaJablonec/72/?lenDays=31&dateFrom=2021-05-03&draw=Uka%C5%BE%21
+- Nový typ datového zdroje pro grafy - **hodinový/denní součet.** Pro grafy kratší než týden vrací hodinové součty; pro delší grafy vrací denní součty. Hodí se pro srážky. 
+  https://lovecka.info/ra/chart/view/LoveckaJablonec/53/?lenDays=8&dateFrom=2021-05-01&draw=Uka%C5%BE%21
+- Nový **JSON endpoint pro data z meteostanic** - vypisuje aktuální teplotu a max/min teplotu a srážky dnes, včera a za tento týden.
+  Detaily jsou popsány na stránce zařízení v administraci.
+  URL vypadá takto:
+  https://lovecka.info/ra/json/meteo/\<TOKEN\>/\<ID_ZAŘÍZENÍ\>/?temp=\<JMENO_TEMP_SENZORU\>&rain=\<JMENO_RAIN_SENZORU\>
+- Při přidávání datové řady do grafu jsou nově senzory seřazeny podle **měřené veličiny**, jména zařízení a pak teprve jména senzoru. 
+  Takže jsou u sebe všechny teploměry jednoho uživatele, všechny srážkoměry atd.
+
+- **Pokud upgradujete, je třeba provést změnový skript databáze 20210602_diff_5.3_5.3.1.sql**
+
+
 ### **2021-04-23 verze 5.3.2**
 
 **Velká změna - podpora pro log shipping.** Logy ze zařízení mohou být automaticky předávány na server. 

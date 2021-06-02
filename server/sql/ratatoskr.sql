@@ -214,6 +214,19 @@ CREATE TABLE `sumdata` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Day and hour summaries. Computed from MEASURES. Data from MEASURES are getting deleted some day; but SUMDATA are here for stay.';
 
 
+DROP TABLE IF EXISTS `updates`;
+CREATE TABLE `updates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `device_id` smallint(6) NOT NULL COMMENT 'ID zařízení',
+  `fromVersion` varchar(200) COLLATE utf8_czech_ci NOT NULL COMMENT 'verze, ze které se aktualizuje',
+  `fileHash` varchar(100) COLLATE utf8_czech_ci NOT NULL COMMENT 'hash souboru',
+  `inserted` datetime NOT NULL COMMENT 'timestamp vložení',
+  `downloaded` datetime DEFAULT NULL COMMENT 'timestamp stažení',
+  PRIMARY KEY (`id`),
+  KEY `device_id_fromVersion` (`device_id`,`fromVersion`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+
+
 DROP TABLE IF EXISTS `value_types`;
 CREATE TABLE `value_types` (
   `id` int(11) NOT NULL,
@@ -235,7 +248,11 @@ INSERT INTO `value_types` (`id`, `unit`) VALUES
 (12,	'W'),
 (13,	'Wh'),
 (14,	'mA'),
-(15,	'mAh');
+(15,	'mAh'),
+(16,	'lx'),
+(17,	'°'),
+(18,	'm/s'),
+(19,	'mm');
 
 DROP TABLE IF EXISTS `views`;
 CREATE TABLE `views` (
@@ -282,6 +299,8 @@ INSERT INTO `view_source` (`id`, `desc`, `short_desc`) VALUES
 (6,	'Denní součet',	'Denní suma'),
 (7,	'Hodinový součet',	'Hodinová suma'),
 (8,	'Hodinové maximum',	'Hodinové maximum'),
-(9,	'Hodinové/denní maximum',	'Do 90denních pohledů hodinové maximum, pro delší denní maximum');
+(9,	'Hodinové/denní maximum',	'Do 90denních pohledů hodinové maximum, pro delší denní maximum'),
+(10,	'Hodinový/denní součet',	'Pro krátké pohledy hodinový součet, pro dlouhé denní součet (typicky pro srážky)'),
+(11,	'Týdenní součet',	'Týdenní součet (pro srážky)');
 
--- 2021-02-12 14:02:46
+-- 2021-06-02 09:30:26

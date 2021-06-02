@@ -303,6 +303,7 @@ final class DevicePresenter extends BaseAdminPresenter
 
         $url = new Url( $this->getHttpRequest()->getUrl()->getBaseUrl() );
         $this->template->jsonUrl = $url->getAbsoluteUrl() . "json/data/{$post['json_token']}/{$id}/";
+        $this->template->jsonUrl2 = $url->getAbsoluteUrl() . "json/meteo/{$post['json_token']}/{$id}/?temp=JMENO_TEMP_SENZORU&rain=JMENO_RAIN_SENZORU";
         $this->template->blobUrl = $url->getAbsoluteUrl() . "gallery/{$post['blob_token']}/{$id}/";
 
     }

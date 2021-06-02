@@ -238,7 +238,7 @@ class InventoryDataSource
             left outer join value_types vt
             on s.value_type = vt.id
             where d.user_id = ?
-            order by s.name asc
+            order by vt.unit asc, d.name asc, s.name asc
         ', $userId );
 
         foreach ($result as $row) {
