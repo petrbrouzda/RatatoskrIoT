@@ -84,7 +84,7 @@ Server:
 
 Server:
 - Nové typy grafů 
-  - sloupcový https://lovecka.info/ra/chart/view/LoveckaJablonec/54/?dateFrom=2021-04-02&lenDays=1&plus=1 
+  - sloupcový https://lovecka.info/ra/chart/view/LoveckaJablonec/53/?lenDays=8&dateFrom=2021-05-26
   - čárový https://lovecka.info/ra/chart/view/LoveckaJablonec/50/?dateFrom=2021-04-04&lenDays=3&minus=1
 - V grafech je tenkou zelenou čárou vyznačen aktuální čas, pokud graf obsahuje dnešek.
 
