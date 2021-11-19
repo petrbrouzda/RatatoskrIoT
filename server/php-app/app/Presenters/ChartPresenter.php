@@ -80,7 +80,7 @@ final class ChartPresenter extends BasePresenter
             $x = $this->axisX->getPosX( $point->relativeTime );
             $y = $axisY->getPosY( $point->value );
 
-            if( $prevPointX!=NULL && $point->connectedFromPrevious ) {
+            if( $prevPointX!==NULL && $point->connectedFromPrevious ) {
                 // spojime carou s predeslym bodem
                 if( $nr==1 ) {
                     $this->image->line(
@@ -149,7 +149,7 @@ final class ChartPresenter extends BasePresenter
             $x = $this->axisX->getPosX( $point->relativeTime );
             $y = $axisY->getPosY( $point->value );
 
-            if( $prevPointX!=NULL && $point->connectedFromPrevious ) {
+            if( $prevPointX!==NULL && $point->connectedFromPrevious ) {
                 // spojime carou s predeslym bodem
                 $this->image->line(
                     $prevPointX, $prevPointY, 
@@ -897,9 +897,9 @@ final class ChartPresenter extends BasePresenter
             $out = 0;
 
             if( $sensor->device_class == 1 ) {
-                if( $row['ct_val']>21 && $row['avg_val']!=null ) {
+                if( $row['ct_val']>21 && $row['avg_val']!==null ) {
                     $out = 1; // nejvyssi kvalita
-                } else if( $row['ct_val']>11 && $row['avg_val']!=null ) {
+                } else if( $row['ct_val']>11 && $row['avg_val']!==null ) {
                     $out = 2; // jeste mam prumer
                 } else if( $row['ct_val']>11  ) {
                     $out = 3; // nejaka data
@@ -1132,7 +1132,7 @@ final class ChartPresenter extends BasePresenter
                 $prevDate = $row->rec_date;
             }
 
-            if( $row->avg_val!=null ) {
+            if( $row->avg_val!==null ) {
                 if( $mode==0 ) {
                     $values[] = $row->avg_val;
                 } else if( $mode==1 ) {
@@ -1263,7 +1263,7 @@ final class ChartPresenter extends BasePresenter
                 
                 $val = $this->avg->getAvg($m,$d);
                 
-                if( $val==null ) {
+                if( $val===null ) {
                     $color = $this->colorNoData;
                 } else if( $val>=0 ) {
                     $idx = intval( $val * 9 / 25 );
@@ -1397,7 +1397,7 @@ final class ChartPresenter extends BasePresenter
                     $avgVal = $this->avg->getAvg($m,$d);
                     $val = isset($this->avgSeries[$year][$m][$d]) ? $this->avgSeries[$year][$m][$d] : null;
                     
-                    if( $val==null || $avgVal==null ) {
+                    if( $val===null || $avgVal===null ) {
                         $color = $this->colorNoData;
                     } else if( $val-$avgVal >= 0 ) {
                         $idx = intval( $val-$avgVal );
@@ -1827,6 +1827,37 @@ final class ChartPresenter extends BasePresenter
         $this->template->sumdataStats = $this->datasource->getSumdataStats( $id ); 
         $this->template->sumdataCount = $this->datasource->getSumdataCount( $id ); 
 
+        if( $sensor->device_class == 3 ) {
+            // jen pro impulzni senzory - vytahneme mesicni sumy
+            $rs = $this->datasource->getMonthSummaryImp( $id ); 
+            $mesicniSumarizace = array();
+            
+            foreach( $rs as $row ) {
+                $rok = substr( $row->datum_mesic, 0, 4 );
+                $mesic = intval(substr( $row->datum_mesic, 5, 2 ));
+                $mesicniSumarizace[$rok][$mesic] = $row->suma;
+                if( isset($mesicniSumarizace[$rok]['celkem']) ) {
+                    $prev = $mesicniSumarizace[$rok]['celkem'];
+                } else {
+                    $prev = 0;
+                }
+                $mesicniSumarizace[$rok]['celkem'] = $prev + $row->suma;
+            }
+            $this->template->mesicniSumarizace = $mesicniSumarizace;
+        } else if( $sensor->device_class == 1 ) {
+            // jen pro spojite senzory - vytahneme mesicni min/max/avg
+            $rs = $this->datasource->getMonthSummaryCont( $id ); 
+            $mesicniSumarizace = array();
+            
+            foreach( $rs as $row ) {
+                $rok = substr( $row->datum_mesic, 0, 4 );
+                $mesic = intval(substr( $row->datum_mesic, 5, 2 ));
+                $mesicniSumarizace[$rok][$mesic]['min'] = $row->min_val;
+                $mesicniSumarizace[$rok][$mesic]['max'] = $row->max_val;
+                $mesicniSumarizace[$rok][$mesic]['avg'] = $row->avg_val;
+            }
+            $this->template->mesicniSumarizace = $mesicniSumarizace;
+        }
     }
 
 }

@@ -41,6 +41,27 @@ mail:
 	secure: ssl
 
 services:
-	# Pokud chcete vsechny vznikle zaznamy replikovat do jineho systemu, definujte plugin, ktery to bude resit.
+	# --- konfigurace pluginu ---
+	
+	# 1) Pokud chcete vsechny vznikle zaznamy replikovat do jineho systemu, definujte plugin, ktery to bude resit.
 	# Odkomentujte nasledujici radek a zmente tam jmeno classu. A zajistete spousteni jobu crontask/export
+	#
 	# exportPlugin: App\Plugins\DemoExportPlugin
+
+	# 2) Pokud chcete vytvaret timelapse z obrazku, pak odkomentujte nasledujici sekci. Parametry pluginu jsou:
+	# - jmeno timelapse
+	# - device ID
+	# - cas od v ramci kazdeho dne (pro cely den dejte 00:00)
+	# - cas do v ramci kazdeho dne (pro cely den dejte 24:00)
+	# - minimalni casovy odstup snimku v minutach.
+	# 
+	# Plugin generuje ucelenou řadu obrázků:
+	#   	data/_timelapse/YYYY-MM-DD_hh-mm-ss_deviceId_description.jpg
+	# 
+	# Aby se to spustilo, zajistete spousteni jobu crontask/export
+	#
+	# Exportu muzete mit vice, opakujte celou sekci "timelapse1" a pojmenujte ji napr. timelapse2 
+	#
+	# timelapse1:
+	#	factory: App\Plugins\ImageTimelapse( 'lapse1', 13, '10:00', '14:00', 30 )
+	#	autowired: false

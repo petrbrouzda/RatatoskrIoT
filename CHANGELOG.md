@@ -1,5 +1,21 @@
 # Changelog
 
+# 2021-11-16
+Server
+- Podpora pro exportní pluginy pro obrázky. Hotový exportní plugin pro dělání timelapse z kamer. Viz informace v config/local.neon.sample. 
+- Na stránce "Statistika" u senzoru se pro impulzní senzory vypisují měsíční a roční sumy, pro senzory spojitých veličin se vypisuje měsíční min/avg/max.
+![Statistika pro impulzní senzor - měsíční sumy](/doc/sensor-stat-1.png "Statistika pro impulzní senzor - měsíční sumy")
+![Statistika pro senzor spojité veličiny - měsíční min/avg/max](/doc/sensor-stat-2.png "Statistika pro senzor spojité veličiny - měsíční min/avg/max")
+- Oprava počítání denního průměru - nebyl vyplněn, pokud některé hodinové hodnoty byly rovné nule.
+
+----
+# 2021-09-04
+
+Server
+- Při zakládání senzoru se jeho jméno nastaví i jako description.
+
+
+----
 # 2021-06-02
 
 Server

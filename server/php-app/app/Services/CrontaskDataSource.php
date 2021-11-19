@@ -45,20 +45,31 @@ class CrontaskDataSource
     }
 
 
-    public function getImagesForProcessing()
+    public function getImagesForProcessing( )
     {
         return $this->database->fetchAll(  "
         select * 
         from blobs
         where extension = 'jpg'
-        and description = 'camera'
         and status = 1
         order by id asc
         limit 30
         " );
     }
 
-    public function updateImageAll( $id, $desc )
+    public function getImagesForExport( )
+    {
+        return $this->database->fetchAll(  "
+        select * 
+        from blobs
+        where extension = 'jpg'
+        and status = 2
+        order by id asc
+        limit 30
+        " );
+    }
+
+    public function updateImageProperties( $id, $desc )
     {
         $this->database->query('UPDATE blobs SET ', [ 
             'status' => 2,
@@ -66,10 +77,10 @@ class CrontaskDataSource
         ] , 'WHERE id = ?', $id);
     }
 
-    public function updateImageStatus( $id )
+    public function updateImageStatus( $id, $newStatus=2 )
     {
         $this->database->query('UPDATE blobs SET ', [ 
-            'status' => 2
+            'status' => $newStatus
         ] , 'WHERE id = ?', $id);
     }
 

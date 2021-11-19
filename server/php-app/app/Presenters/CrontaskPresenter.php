@@ -175,7 +175,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
             $zapisWarningy = 0;
 
             $value_out = isset($sensor['last_out_value']) ? $sensor['last_out_value'] : null;
-            if( $value_out != null ) {
+            if( $value_out !== null ) {
                 $zapisWarningy += $this->checkMinMaxLimits( $sensor, $value_out, $sensor['last_data_time'] );
             }
 
@@ -457,7 +457,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
 
         // spocist prumer, pokud mame data
         if( $sensor->device_class == 1 ) {
-            if( $val0!=NULL && $val6!=NULL && $val12!=NULL && $val18!=NULL ) {
+            if( $val0!==NULL && $val6!==NULL && $val12!==NULL && $val18!==NULL ) {
                 $avg = ($val0+$val6+$val12+$val18) / 4;
             }
         }
@@ -574,6 +574,10 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
     }
 
 
+    /**
+     * Zpracovava obrazky.
+     * Pokud je description='camera', udela kontrolu, zda fotka neobsahuje jen cernou a oznaci ji tak.
+     */
     private function processImages( $logger )
     {
         $ctImages = 0;
@@ -586,18 +590,23 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
                 break;
             }
 
-            $logger->write(  Logger::DEBUG , "img {$image['id']}" );
-            $file = FileSystem::normalizePath( __DIR__ . "/../../data/" . $image['filename'] );
-            $out = $this->testImage( $file, $logger );
-            $ctImages++;
-            if( $out==0 ) {
-                $this->datasource->updateImageAll( $image['id'], $image['description'] . ' BLACK');
-                $ctBlack++;
-            } else if ( $out==1 )  {
-                $this->datasource->updateImageStatus( $image['id'] );
+            $logger->write(  Logger::DEBUG , "img {$image['id']} {$image['description']}" );
+
+            if( $image['description']=='camera' ) {
+                $file = FileSystem::normalizePath( __DIR__ . "/../../data/" . $image['filename'] );
+                $out = $this->testImage( $file, $logger );
+                $ctImages++;
+                if( $out==0 ) {
+                    $this->datasource->updateImageProperties( $image['id'], $image['description'] . ' BLACK');
+                    $ctBlack++;
+                } else if ( $out==1 )  {
+                    $this->datasource->updateImageStatus( $image['id'], 2 );
+                } else {
+                    $this->datasource->updateImageProperties( $image['id'], $image['description'] . ' BLACK LAMP');
+                    $ctBlack++;
+                }
             } else {
-                $this->datasource->updateImageAll( $image['id'], $image['description'] . ' BLACK LAMP');
-                $ctBlack++;
+                $this->datasource->updateImageStatus( $image['id'], 2 );
             }
         }
 
@@ -799,32 +808,21 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
 
 
 
-    public $maxRunTimeExport = 55;
-
     /**
-     * Export novych measures do externiho systemu.
-     * Viz popis https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
+     * Export novych zaznamu do sluzeb implementujicich rozhrani ExportPlugin
      */
-    public function renderExport()
+    private function exportRecords( $logger, $timeLimit )
     {
-        if( ! $this->checkIp() ) return;
-
-        $timeLimit = time() + $this->maxRunTimeExport;
-        
-        $logger = new Logger( "cron" );
-        $logger->setContext("exp");
-
         try {
 
             $ct = 0;
 
             $exporter = $this->context->getService('exportPlugin');
-
             while( true ) {
                 $rows = $this->datasource->getExportData();
                 if (count($rows) < 1) {
-                break;
-            }
+                    break;
+                }
                 foreach( $rows as $row ) {
                     $rc = $exporter->exportRecord( 
                         $row->id,		
@@ -857,13 +855,104 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
                     break;
                 }
             }
-        
-            $this->template->result = "OK";
+            
             $logger->write( Logger::INFO, "Done, {$ct} records."  );
 
+            $this->template->result = "OK";
+
+        } catch( \Nette\DI\MissingServiceException $e ) {
+            $logger->write( Logger::DEBUG, "No export plugin found." );
         } catch (\Exception $e) {
             $logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
         }
+    }
+
+
+    /**
+     * Export novych obrazku do sluzeb implementujicich rozhrani ImagePlugin
+     */
+    private function exportImages( $logger, $timeLimit )
+    {
+        try {
+            $ct = 0;
+
+            $imagePlugins = $this->context->findByType( 'App\Plugins\ImagePlugin' );
+
+            while( true ) {
+                $images = $this->datasource->getImagesForExport();
+                if (count($images) < 1) {
+                    break;
+                }
+
+                foreach( $images as $image ) {
+        
+                    $logger->write(  Logger::DEBUG , "img {$image['id']}" );
+                    $file = FileSystem::normalizePath( __DIR__ . "/../../data/" . $image['filename'] );
+
+                    foreach ($imagePlugins as $name ) {
+                        $rc = $this->context->getService($name)->exportImage(
+                            $file,    
+                            $image['id'],
+                            $image['device_id'],
+                            $image['data_time'],	
+                            $image['description'],
+                            $image['filesize']
+                        );
+                    }
+
+                    if( $rc == 0 ) {
+                        $this->datasource->updateImageStatus( $image['id'], 3 );
+                        $ct++;
+                    } else {
+                        $logger->write( Logger::DEBUG,  "#{$image->id} " );                    
+                        $logger->write( Logger::WARNING, "Chyba exportu #{$rc}."  );
+                        $logger->write( Logger::INFO, "Stopping, {$ct} records done."  );
+                        $this->template->result = "ERROR #{$rc}";
+                        return;
+                    }
+
+                    if( time() > $timeLimit ) {
+                        // prekrocena maximalni delka behu
+                        break;
+                    }
+                }
+
+                if( time() > $timeLimit ) {
+                    // prekrocena maximalni delka behu
+                    break;
+                }
+            }
+
+            $logger->write( Logger::INFO, "Done, {$ct} images."  );
+            $this->template->result = "OK";
+
+        } catch( \Nette\DI\MissingServiceException $e ) {
+            $logger->write( Logger::DEBUG, "No image plugin found. " );
+        } catch (\Exception $e) {
+            $logger->write( Logger::ERROR,  "ERR: " . get_class($e) . ": " . $e->getMessage() );
+        }
+    }
+
+
+    public $maxRunTimeExport = 55;
+
+    /**
+     * Export novych zaznamu do externiho systemu.
+     * Viz popis https://pebrou.wordpress.com/2021/01/19/ratatoskriot-replikace-dat-do-jineho-systemu/
+     */
+    public function renderExport()
+    {
+        if( ! $this->checkIp() ) return;
+
+        $timeLimit = time() + $this->maxRunTimeExport;
+        
+        $logger = new Logger( "cron" );
+        $logger->setContext("exp");
+
+        $this->template->result = "ERROR";
+
+        $this->exportRecords( $logger, $timeLimit-10 );
+        $this->exportImages( $logger, $timeLimit );
     }
 
 }

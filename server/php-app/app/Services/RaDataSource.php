@@ -232,6 +232,7 @@ class RaDataSource
                 'device_id' => $sessionDevice->deviceId,
                 'channel_id' => $channel,
                 'name' => $name,
+                'desc' => $name,
                 'device_class' => $devClass,
                 'value_type' => $valueType,
                 'msg_rate' => $msgRate,

@@ -520,6 +520,36 @@ class ChartDataSource
             ', $token  );
     }
 
+    public function getMonthSummaryImp( $sensorId ) 
+    {
+        return $this->database->fetchAll(  '
+            select datum_mesic, sum( sum_val ) as suma
+            from 
+            (
+            select rec_date, sum_val, DATE_FORMAT(`rec_date`,\'%Y-%m\') as datum_mesic
+            from sumdata where sensor_id = ? and sum_type = 2
+            ) data
+            group by datum_mesic
+            order by datum_mesic asc
+            ', $sensorId
+        );
+    }
+
+    public function getMonthSummaryCont( $sensorId ) 
+    {
+        return $this->database->fetchAll(  '
+            select datum_mesic, min( min_val ) as min_val, max( max_val ) as max_val, avg( avg_val ) as avg_val
+            from 
+            (
+            select rec_date, min_val, max_val, avg_val, DATE_FORMAT(`rec_date`,\'%Y-%m\') as datum_mesic
+            from sumdata where sensor_id = ? and sum_type = 2
+            ) data
+            group by datum_mesic
+            order by datum_mesic asc
+            ', $sensorId
+        );
+    }
+
     public function getMeasuresStats( $sensorId ) 
     {
         return $this->database->fetch(  '

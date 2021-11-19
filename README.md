@@ -24,57 +24,14 @@ Co je v repository?
 
 Detailní informace o změnách najdete  v souboru [CHANGELOG.md](CHANGELOG.md)
 
-### **2021-06-02**
-
-Server
-- Nový typ datového zdroje pro grafy - **týdenní součet.** Hodí se pro týdenní sumu srážek. Upraví počáteční datum tak, aby bylo v pondělí; 
-  upraví délku grafu na celé týdny. 
-  https://lovecka.info/ra/chart/view/LoveckaJablonec/72/?lenDays=31&dateFrom=2021-05-03&draw=Uka%C5%BE%21
-- Nový typ datového zdroje pro grafy - **hodinový/denní součet.** Pro grafy kratší než týden vrací hodinové součty; pro delší grafy vrací denní součty. Hodí se pro srážky. 
-  https://lovecka.info/ra/chart/view/LoveckaJablonec/53/?lenDays=8&dateFrom=2021-05-01&draw=Uka%C5%BE%21
-- Nový **JSON endpoint pro data z meteostanic** - vypisuje aktuální teplotu a max/min teplotu a srážky dnes, včera a za tento týden.
-  Detaily jsou popsány na stránce zařízení v administraci.
-  URL vypadá takto:
-  https://lovecka.info/ra/json/meteo/\<TOKEN\>/\<ID_ZAŘÍZENÍ\>/?temp=\<JMENO_TEMP_SENZORU\>&rain=\<JMENO_RAIN_SENZORU\>
-- Při přidávání datové řady do grafu jsou nově senzory seřazeny podle **měřené veličiny**, jména zařízení a pak teprve jména senzoru. 
-  Takže jsou u sebe všechny teploměry jednoho uživatele, všechny srážkoměry atd.
-
-- **Pokud upgradujete, je třeba provést změnový skript databáze 20210602_diff_5.3_5.3.1.sql**
+### **2021-11-16**
+- Podpora pro exportní pluginy pro obrázky. Hotový exportní plugin pro dělání timelapse z kamer. Viz informace v config/local.neon.sample. 
+- Na stránce "Statistika" u senzoru se pro impulzní senzory vypisují měsíční a roční sumy, pro senzory spojitých veličin se vypisuje měsíční min/avg/max.
+![Statistika pro impulzní senzor - měsíční sumy](/doc/sensor-stat-1.png "Statistika pro impulzní senzor - měsíční sumy")
+![Statistika pro senzor spojité veličiny - měsíční min/avg/max](/doc/sensor-stat-2.png "Statistika pro senzor spojité veličiny - měsíční min/avg/max")
 
 
-### **2021-04-23 verze 5.3.2**
 
-**Velká změna - podpora pro log shipping.** Logy ze zařízení mohou být automaticky předávány na server. 
-- Defaultně je to vypnuté, protože to potřebuje nějakou paměť na zařízení a přenáší to data navíc.
-- POZOR! Kvůli paměťové náročnosti a rychlosti se logy posílají (zatím) **nešifrovaně**. Jsou podepsané (= nemělo by být možno zapsat log za cizí zařízení), ale nejsou šifrované, takže je možné je po cestě odposlechnout.
-
-**Velká změna - podpora pro OTA updaty, zatím jen pro ESP32.** Z administrace lze snadno poslat OTA update. 
-- Update si stahuje zařízení (pull), tj. není třeba mít konektivitu na zařízení.
-- POZOR! Kvůli paměťové náročnosti a rychlosti se update posílají (zatím) **nešifrovaně**. Jsou podepsané (= nemělo by být možné je po cestě změnit), ale nejsou šifrované, takže je možné je odposlechnout.
-
-MCU:
-- Ověření funkce na ESP32 core 1.0.6, nadále bude vyvíjeno na této verzi.
-- Podpora pro log shipping. 
-  - Podpora se musí se zapnout v **AppFeatures.h** odkomentováním definice LOG_SHIPPING. Pokud není definováno, kód pro log shipping se ani nezahrne do aplikace.
-    - Na ESP32 je defaultně povoleno. Pokud je k dispozici PSRAM, buffer pro ukládání logů se vytváří v ní.
-    - Na ESP8266 je defaultně zakázáno.
-  - Vlastní log shipping se ovládá ze serveru měnitelnou konfigurační položkou **log_ship** s hodnotou 0 nebo 1 - tj. když v AppFeatures.h podporu zapnete, přidá se kód do aplikace, ale teprve konfigurační položka log_ship určuje, zda se logy budou nebo nebudou posílat na server.
-  
-- Podpora pro OTA.
-  - Podpora se musí se zapnout v **AppFeatures.h** odkomentováním definice OTA_UPDATE. Pokud není definováno, kód pro OTA se ani nezahrne do aplikace.
-  - Na ESP32 je defaultně povoleno.
-  - **Na ESP8266 není zatím implementováno.**
-
-Server:
-- Podpora pro log shipping. 
-  - Logy se ukládají do adresáře s logy aplikace, pro každé zařízení je jeden soubor. Jméno souboru je **dev-\<ID\>.\<datum\>.txt**
-- Podpora pro OTA.
-- Administrace zařízení: 
-  - V detailu zařízení se vypisuje čas poslední komunikace.
-  - U posílání změn konfigurace do zařízení jsou uvedeny defaultní konfigurační položky.
-  - Senzory, které mají nastavená varování při překročení limitů, jsou v seznamu označeny ikonou.
-- **Odstranění podpory pro přihlášení zařízení protokolem v4.**
-- **Pokud upgradujete, je třeba provést změnový skript databáze 20210423_diff_5.0_5.3.sql**
 
 
 
