@@ -47,6 +47,12 @@ final class SensorPresenter extends BaseAdminPresenter
             ->setAttribute('cols', 50)
             ->setRequired();
 
+        $form->addInteger('msg_rate', 'Očekávaný interval dat [s]:')
+            ->setAttribute('size', 20)
+            ->setDefaultValue(3600)
+            ->setOption('description', 'Pokud ze senzoru přijdou data s větším odstupem, monitoring ho bude označovat jako nefunkční. 0 = interval se nekontroluje.'  )
+            ->setRequired();
+
         $form->addInteger('display_nodata_interval', 'Maximální interval dat [s]:')
             ->setAttribute('size', 20)
             ->setDefaultValue(7200)
@@ -88,6 +94,12 @@ final class SensorPresenter extends BaseAdminPresenter
         $form->addTextArea('desc', 'Popis:')
             ->setAttribute('rows', 4)
             ->setAttribute('cols', 50)
+            ->setRequired();
+
+        $form->addInteger('msg_rate', 'Očekávaný interval dat [s]:')
+            ->setAttribute('size', 20)
+            ->setDefaultValue(3600)
+            ->setOption('description', 'Pokud ze senzoru přijdou data s větším odstupem, monitoring ho bude označovat jako nefunkční. 0 = interval se nekontroluje.'  )
             ->setRequired();
 
         $form->addInteger('display_nodata_interval', 'Maximální interval dat [s]:')

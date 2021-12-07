@@ -828,6 +828,13 @@ final class ChartPresenter extends BasePresenter
      */
     public function intRenderChart( $id, $token, $dateFrom, $lenDays, $altYear=NULL, $mode )
     {
+        if( intval($lenDays)==0 ) {
+            $lenDays = 3;
+        }
+        if( $dateFrom==="" || $dateFrom===NULL ) {
+            $dateFrom = (new DateTime())->modify( "-3 day" );
+        }
+
         $view = $this->datasource->getView( $id, $token );
         
         // vypocet datumu

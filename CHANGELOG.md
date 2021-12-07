@@ -1,5 +1,15 @@
 # Changelog
 
+# 2021-12-07
+Server
+- Neobsahuje-li datový zdroj žádná data, spadne vygenerování grafu na divisionByZero
+
+----
+# 2021-11-21
+Server
+- Při editaci senzoru je možné měnit očekávané tempo zasílání zpráv; při nastavení 0 se pak senzor nevypisuje jako nekomunikující a monitoring ho nehlásí.
+
+----
 # 2021-11-16
 Server
 - Podpora pro exportní pluginy pro obrázky. Hotový exportní plugin pro dělání timelapse z kamer. Viz informace v config/local.neon.sample. 

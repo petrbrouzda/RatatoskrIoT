@@ -283,7 +283,7 @@ final class DevicePresenter extends BaseAdminPresenter
 
         foreach ($this->template->sensors as $sensor) {
             $sensor['warningIcon'] = 0;
-            if( $sensor['last_data_time'] ) {
+            if( $sensor['last_data_time'] && $sensor['msg_rate']!=0 ) {
                 $utime = (DateTime::from( $sensor['last_data_time'] ))->getTimestamp();
                 if( time()-$utime > $sensor['msg_rate'] ) {
                     if( $post['monitoring']==1 ) {

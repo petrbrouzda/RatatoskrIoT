@@ -76,7 +76,7 @@ class InventoryDataSource
         foreach ($result as $row) {
             $device = $rc->get( $row['device_id'] );
             $row['warningIcon'] = 0;
-            if( $row['last_data_time'] ) {
+            if( $row['last_data_time']  && $row['msg_rate']!=0  ) {
                 $utime = (DateTime::from( $row['last_data_time'] ))->getTimestamp();
                 if( time()-$utime > $row['msg_rate'] ) {
                     if( $device->attrs['monitoring']==1 ) {
@@ -129,6 +129,7 @@ class InventoryDataSource
     {
         $outvalues = array();
         $outvalues['desc'] = $values['desc'];
+        $outvalues['msg_rate'] = $values['msg_rate'];
         $outvalues['display_nodata_interval'] = $values['display_nodata_interval'];
         $outvalues['preprocess_data'] = $values['preprocess_data'];
         $outvalues['preprocess_factor'] =  ( $values['preprocess_data']=='1' ? $values['preprocess_factor'] : "1" );

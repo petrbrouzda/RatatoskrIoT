@@ -179,7 +179,7 @@ final class CrontaskPresenter extends Nette\Application\UI\Presenter
                 $zapisWarningy += $this->checkMinMaxLimits( $sensor, $value_out, $sensor['last_data_time'] );
             }
 
-            if( $sensor['last_data_time'] && $sensor['monitoring'] ) {
+            if( $sensor['last_data_time'] && $sensor['monitoring']  && $sensor['msg_rate']!=0  ) {
                 $zapisWarningy += $this->checkLastDataTs( $sensor );
             }
 

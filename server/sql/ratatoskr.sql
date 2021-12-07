@@ -16,10 +16,10 @@ CREATE TABLE `blobs` (
   `filename` varchar(255) COLLATE utf8_czech_ci DEFAULT NULL,
   `session_id` mediumint(9) DEFAULT NULL,
   `remote_ip` varchar(32) COLLATE utf8_czech_ci DEFAULT NULL,
-  `status` tinyint(4) NOT NULL DEFAULT '0',
+  `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '1 = nahrano, 2 = zpracovano cron taskem (jen obrazky jpg), 3 = exportovano (jen obrazky jpg)',
   `filesize` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=48696 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 
 
 DROP TABLE IF EXISTS `devices`;
@@ -42,7 +42,7 @@ CREATE TABLE `devices` (
   `config_data` text COLLATE utf8_czech_ci,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='List of devices. Device has one or more Sensors.';
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='List of devices. Device has one or more Sensors.';
 
 
 DROP TABLE IF EXISTS `device_classes`;
@@ -70,7 +70,7 @@ CREATE TABLE `measures` (
   PRIMARY KEY (`id`),
   KEY `device_id_sensor_id_data_time_id` (`sensor_id`,`data_time`,`id`),
   KEY `status_id` (`status`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Recorded data - raw. SUMDATA are created from recorded data, and old data are deleted from MEASURES.';
+) ENGINE=InnoDB AUTO_INCREMENT=5139776 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Recorded data - raw. SUMDATA are created from recorded data, and old data are deleted from MEASURES.';
 
 
 DROP TABLE IF EXISTS `notifications`;
@@ -85,7 +85,7 @@ CREATE TABLE `notifications` (
   `custom_text` varchar(255) COLLATE utf8_czech_ci DEFAULT NULL,
   `out_value` double DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1844 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 
 
 DROP TABLE IF EXISTS `prelogin`;
@@ -97,7 +97,7 @@ CREATE TABLE `prelogin` (
   `remote_ip` varchar(32) COLLATE utf8_czech_ci NOT NULL,
   `session_key` varchar(255) COLLATE utf8_czech_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Sem se ukládají session po akci LOGINA - před tím, než je zařízení potvrdí via LOGINB';
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Sem se ukládají session po akci LOGINA - před tím, než je zařízení potvrdí via LOGINB';
 
 
 DROP TABLE IF EXISTS `rausers`;
@@ -128,7 +128,7 @@ CREATE TABLE `rausers` (
   `last_error_browser` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `monitoring_token` varchar(100) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 DROP TABLE IF EXISTS `rauser_state`;
@@ -178,7 +178,7 @@ CREATE TABLE `sensors` (
   PRIMARY KEY (`id`),
   KEY `device_id_name` (`device_id`,`name`),
   KEY `device_id_channel_id_name` (`device_id`,`channel_id`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='List of sensors. Each sensor is a part of one DEVICE.';
+) ENGINE=InnoDB AUTO_INCREMENT=118 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='List of sensors. Each sensor is a part of one DEVICE.';
 
 
 DROP TABLE IF EXISTS `sessions`;
@@ -191,7 +191,7 @@ CREATE TABLE `sessions` (
   `session_key` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `device_id` (`device_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Sessions on IoT interface.';
+) ENGINE=InnoDB AUTO_INCREMENT=49947 DEFAULT CHARSET=latin1 COMMENT='Sessions on IoT interface.';
 
 
 DROP TABLE IF EXISTS `sumdata`;
@@ -211,7 +211,7 @@ CREATE TABLE `sumdata` (
   `status` tinyint(4) DEFAULT '0' COMMENT '0 = created hourly stat (= daily stat should be recomputed), 1 = used',
   PRIMARY KEY (`id`),
   KEY `sensor_id_rec_date_sum_type` (`sensor_id`,`rec_date`,`sum_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Day and hour summaries. Computed from MEASURES. Data from MEASURES are getting deleted some day; but SUMDATA are here for stay.';
+) ENGINE=InnoDB AUTO_INCREMENT=1988093 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Day and hour summaries. Computed from MEASURES. Data from MEASURES are getting deleted some day; but SUMDATA are here for stay.';
 
 
 DROP TABLE IF EXISTS `updates`;
@@ -224,7 +224,7 @@ CREATE TABLE `updates` (
   `downloaded` datetime DEFAULT NULL COMMENT 'timestamp stažení',
   PRIMARY KEY (`id`),
   KEY `device_id_fromVersion` (`device_id`,`fromVersion`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
 
 
 DROP TABLE IF EXISTS `value_types`;
@@ -266,7 +266,7 @@ CREATE TABLE `views` (
   `user_id` smallint(6) NOT NULL,
   `app_name` varchar(100) COLLATE utf8_czech_ci NOT NULL DEFAULT 'RatatoskrIoT' COMMENT 'Application name in top menu',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Chart views. Every VIEW (chart) has 0-N series defined in VIEW_DETAILS.';
+) ENGINE=InnoDB AUTO_INCREMENT=76 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='Chart views. Every VIEW (chart) has 0-N series defined in VIEW_DETAILS.';
 
 
 DROP TABLE IF EXISTS `view_detail`;
@@ -280,7 +280,7 @@ CREATE TABLE `view_detail` (
   `color_1` varchar(20) COLLATE utf8_czech_ci NOT NULL DEFAULT '255,0,0' COMMENT 'Color (R,G,B) for primary data',
   `color_2` varchar(20) COLLATE utf8_czech_ci NOT NULL DEFAULT '0,0,255' COMMENT 'Color (R,G,B) for comparison year',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='One serie for chart (VIEW).';
+) ENGINE=InnoDB AUTO_INCREMENT=135 DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci COMMENT='One serie for chart (VIEW).';
 
 
 DROP TABLE IF EXISTS `view_source`;
@@ -303,4 +303,4 @@ INSERT INTO `view_source` (`id`, `desc`, `short_desc`) VALUES
 (10,	'Hodinový/denní součet',	'Pro krátké pohledy hodinový součet, pro dlouhé denní součet (typicky pro srážky)'),
 (11,	'Týdenní součet',	'Týdenní součet (pro srážky)');
 
--- 2021-06-02 09:30:26
+-- 2021-11-17 19:57:34
