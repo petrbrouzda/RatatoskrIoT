@@ -8,6 +8,7 @@
   #include <esp_wifi.h>
   #include <esp_bt.h>
   #include <Arduino.h>
+  #include "../../AppFeatures.h"
 
   // https://www.savjee.be/2019/12/esp32-tips-to-increase-battery-life/
   void ra__DeepSleep( long usec )
@@ -16,8 +17,10 @@
       WiFi.mode(WIFI_OFF);
       btStop();
     
-      adc_power_off();
-      // esp_wifi_stop();
+      #if ESP_ARDUINO_VERSION_MAJOR == 1 
+        adc_power_off();
+      #endif
+      
       esp_bt_controller_disable();
       
       esp_sleep_enable_timer_wakeup( usec );
@@ -26,7 +29,7 @@
   
   void ra__LightSleep( long usec )
   {
-      Serial.flush();
+      LOG_SERIAL_PORT.flush();
       
       /*
       WiFi.disconnect(true);

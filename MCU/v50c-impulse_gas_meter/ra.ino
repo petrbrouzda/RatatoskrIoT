@@ -1,4 +1,24 @@
 
+#ifdef ESP32
+  #if ESP_ARDUINO_VERSION_MAJOR == 2 
+    #if ESP_ARDUINO_VERSION_MINOR == 0
+      #if ESP_ARDUINO_VERSION_PATCH < 5
+        #error Upgradujte ESP32 desku na 2.0.5 !
+      #endif
+    #endif
+  #endif
+#endif
+
+#ifdef ESP32
+  #if ESP_ARDUINO_VERSION_MAJOR == 1
+    #if ESP_ARDUINO_VERSION_MINOR == 0
+      #if ESP_ARDUINO_VERSION_PATCH < 6
+        #error Upgradujte ESP32 desku na 1.0.6 nebo 2.0.5+ !
+      #endif
+    #endif
+  #endif
+#endif
+
 #ifdef LOG_SHIPPING
   #define LOG_SHIPPING_COMPILED "Y"
 #else
@@ -12,11 +32,14 @@
 #endif
 
 #if defined(ESP32)
-  #define RA_PLATFORM_NAME "ESP32"
+  #ifdef CONFIG_IDF_TARGET_ESP32C3
+    #define RA_PLATFORM_NAME "ESP32-C3"
+  #else
+    #define RA_PLATFORM_NAME "ESP32"
+  #endif
 #elif defined(ESP8266)
   #define RA_PLATFORM_NAME "ESP8266"
 #endif
-
 
 int prevFreeHeap;
 
@@ -125,11 +148,14 @@ void ratatoskr_startup( bool initSerial )
 {
   if ( initSerial  ) {
 #if defined(ESP32)    
-    Serial.begin(115200);
+    LOG_SERIAL_PORT.begin(115200);
 #elif defined(ESP8266)
-    Serial.begin(115200);  // 74880 jsou bezne boot msgs
+    LOG_SERIAL_PORT.begin(115200);  // 74880 jsou bezne boot msgs
 #endif
-    while (!Serial) {}
+
+    // tohle nesmi byt, protoze na -C3 s USB=JTAG (USB CDC) to zasekne aplikaci, pokud neni pripojen seriovy port k pocitaci!
+    // while (!LOG_SERIAL_PORT) { delay(1); }
+    
   }
 
   ra = new ratatoskr( &config, LOG_MODE );
@@ -212,10 +238,10 @@ void ratatoskr_startup( bool initSerial )
   {
     // nejprve posleme prepsanou cast druheho bufferu
     if( logShippingBuffer->avail2() ) {
-      Serial.println( " - log 2");
+      LOG_SERIAL_PORT.println( " - log 2");
       if( ra->conn->sendLogData( logShippingBuffer->getText2() ) ) {
         logShippingBuffer->delete2();
-        Serial.println( " - OK");
+        LOG_SERIAL_PORT.println( " - OK");
         return 0;
       } else {
         return 1;
@@ -224,10 +250,10 @@ void ratatoskr_startup( bool initSerial )
 
     // pak posleme prvni buffer
     if( logShippingBuffer->avail1() ) {
-      Serial.println( " - log 1");
+      LOG_SERIAL_PORT.println( " - log 1");
       if( ra->conn->sendLogData( logShippingBuffer->getText1() ) ) {
         logShippingBuffer->delete1();
-        Serial.println( " - OK");
+        LOG_SERIAL_PORT.println( " - OK");
         return 0;
       } else {
         return 1;
@@ -247,7 +273,7 @@ void ratatoskr_startup( bool initSerial )
     }
 
     if( logShippingBuffer->avail() ) {
-      Serial.println( "Log ship:");
+      LOG_SERIAL_PORT.println( "Log ship:");
 
       // Cas zacatku posledniho log shipingu
       long logShipingStart = time(NULL);
@@ -259,6 +285,8 @@ void ratatoskr_startup( bool initSerial )
       }
       return false;
     }
+
+    return false;
   }
 #else
   // prazdna funkce, aby ji mohla zakaznicka aplikace volat

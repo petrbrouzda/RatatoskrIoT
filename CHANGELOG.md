@@ -1,5 +1,17 @@
 # Changelog
 
+# 2022-09-17
+
+MCU 5.4.1
+- Podpora pro ESP32 arduino core 2.0.5
+- Podpora pro ESP32-C3  
+
+---
+# 2022-01-13
+Server
+- Má-li senzor vypnutou kontrolu komunikace (nastaven interval zpráv na 0), je za jeho jménem v administraci zařízení ikona přeškrtnutého zvonku.
+
+----
 # 2021-12-07
 Server
 - Neobsahuje-li datový zdroj žádná data, spadne vygenerování grafu na divisionByZero

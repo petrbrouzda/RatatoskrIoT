@@ -14,6 +14,8 @@
 #ifndef WiFiManager_h
 #define WiFiManager_h
 
+#include "../../AppFeatures.h"
+
 #if defined(ESP8266) || defined(ESP32)
 
 #ifdef ESP8266
@@ -528,7 +530,11 @@ class WiFiManager
     bool          WiFiSetCountry();
 
     #ifdef ESP32
-    void   WiFiEvent(WiFiEvent_t event, system_event_info_t info);
+      #if ESP_ARDUINO_VERSION_MAJOR == 1 
+        void WiFiEvent(WiFiEvent_t event,system_event_info_t info);
+      #else
+        void WiFiEvent(WiFiEvent_t event,arduino_event_info_t info);
+      #endif
     #endif
 
     // output helpers
@@ -585,7 +591,7 @@ class WiFiManager
     #ifdef WM_DEBUG_PORT
     Stream& _debugPort = WM_DEBUG_PORT;
     #else
-    Stream& _debugPort = Serial; // debug output stream ref
+    Stream& _debugPort = LOG_SERIAL_PORT; // debug output stream ref
     #endif
 
     template <typename Generic>

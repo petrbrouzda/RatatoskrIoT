@@ -20,6 +20,10 @@
    * */
   #define LOG_MODE RA_LOG_MODE_SERIAL
 
+  /**
+   * POZOR! Pokud pouzivate desku ESP32-C3 bez USB-to-serial cipu, a chcete logovat
+   * pres nativni implemehtaci serioveho portu v USB (USB-CDC), zmente v AppFeatures.h definici LOG_SERIAL_PORT
+   */ 
 
 // ================================= konfigurace WiFi   
 
@@ -147,7 +151,8 @@
    */
   #define USE_BLINKER
   /** (pokud je USE_BLINKER) pin, na kterem je stavova LED (muzete zadat LED_BUILTIN, pokud to na vasem zarizeni funguje) */
-  #define BLINKER_PIN 2
+  // default = 2, ESP32-C3 devkit = 12
+  #define BLINKER_PIN 12
   /** (pokud je USE_BLINKER) kdy je LED vypnuta? (ESP32 - nejcasteji LOW, ESP8266 - nejcasteji HIGH ) */
   #define BLINKER_LED_OFF LOW
   /** (pokud je USE_BLINKER) je-li definovano, blika se jen pro konfiguracni portal a pro situaci, kdy je zaple wifi ale neni pripojene k AP */
@@ -198,7 +203,7 @@
 
 // ne-interrupt reseni planovani uloh
 // https://github.com/joysfera/arduino-tasker
-// import "Tasker" 2.0.0 in lib manager !!!
+// import "Tasker" 2.0.3 in lib manager !!!
 #include <Tasker.h>
 
 //Ticker Library - pro Blinker
@@ -213,4 +218,3 @@
 // included in src/ folder
 #include "src/ra/ratatoskr.h"
 #include "src/platform/platform.h"
-

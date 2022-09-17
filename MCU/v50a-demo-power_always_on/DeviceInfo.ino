@@ -29,10 +29,17 @@ void formatMemorySize( char * ptr, long msize )
 
   #include <ESP.h>
   
-  extern "C" {
-    #include <esp_spiram.h>
-    #include <esp_himem.h>
-  }
+  #if ESP_ARDUINO_VERSION_MAJOR == 2 
+    extern "C" {
+      #include <esp32/spiram.h>
+      #include <esp32/himem.h>
+    }
+  #else
+    extern "C" {
+      #include <esp_spiram.h>
+      #include <esp_himem.h>
+    }
+  #endif
   
   
   #define LOW_PSRAM_ONLY
@@ -62,8 +69,17 @@ void formatMemorySize( char * ptr, long msize )
       
     #endif
   
-    sprintf( out+strlen(out), "; CPUx%d %d MHz; flash %d MHz", 
+    sprintf( out+strlen(out), "; %dx %s %d MHz; flash %d MHz", 
             ESP.getChipCores(),
+#if defined(CONFIG_IDF_TARGET_ESP32C3)
+            "ESP32-C3",
+#elif defined(CONFIG_IDF_TARGET_ESP32S2)
+            "ESP32-S2",
+#elif defined(CONFIG_IDF_TARGET_ESP32S3)            
+            "ESP32-S3",
+#else
+            "ESP32",
+#endif            
             ESP.getCpuFreqMHz(), 
             (ESP.getFlashChipSpeed()/1000000)
            );

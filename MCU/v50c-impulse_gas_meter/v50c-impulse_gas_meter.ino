@@ -24,19 +24,20 @@
  */
 
 /*
- * ESP 8266:
+ * ESP8266:
  * - V Arduino IDE MUSI byt nastaveno rozdeleni flash tak, aby bylo alespon 1 M filesystemu SPIFS !
  * - Pokud se ma pouzivat deepsleep, D0 (GPIO16) musi byt spojena s RST. Nicmene pro programovani je treba toto spojeni rozpojit.
  *   According to the ESP8266 SDK, you can only sleep for 4,294,967,295 µs, which is about ~71 minutes.
  * 
- * ESP 32:
+ * ESP32:
  * - V Arduino IDE MUSI byt nastaveno rozdeleni flash tak, aby bylo alespon 1 M filesystemu SPIFS !
  * - V Arduino IDE MUSI byt nastaveno PSRAM: enabled (pokud se ma pouzivat PSRAM)
- * - If you’re using the built-in ADC, don’t forget to turn it back on before using it:
-        adc_power_on();
-     (pokud se ADC nema vypinat, je treba upravit v platform.cpp)
-   - TODO: kouknout na https://github.com/micropython/micropython/issues/4452 rtc_gpio_isolate(GPIO_NUM_12); 
-*/
+ * 
+ * ESP32-C3:
+ * - Pokud vase zarizeni nema USB-to-Serial cip, doporucuji USB-CDC on boot : DISABLED
+ * - a v takovem pripade zmente v AppFeatures.h definici LOG_SERIAL_PORT na USBSerial
+ * - V Arduino IDE MUSI byt nastaveno rozdeleni flash tak, aby bylo alespon kousek filesystemu SPIFS !
+ */
 
 //+++++ RatatoskrIoT +++++
 
@@ -218,6 +219,16 @@ void setup() {
   tasker.setInterval( handleState, 5000 );
   
   //------ user code here -----
+
+  //+++++ RatatoskrIoT +++++
+  // Pokud ve vasem scenari nema cenu, vymazte.
+  // Pri kazdem rebootu, ktery neni probuzenim z deep sleep, posleme na server informaci, ze k rebootu doslo 
+  // = ve vlastnostech zarizeni bude pocitadlo informujici o poctu rebootu.
+  if( ! deepSleepStart ) {
+     int chReboot = ra->defineChannel( DEVCLASS_IMPULSE_SUM, 7, (char*)"_reboot", 0 );
+     ra->postImpulseData( chReboot, 1, 1 );
+  }
+  //----- RatatoskrIoT ----
 }
 
 

@@ -17,8 +17,14 @@
    * Log mode muze byt RA_LOG_MODE_SERIAL nebo RA_LOG_MODE_NOLOG; ta druha je vhodna pro power-save rezim.
    * I pokud je RA_LOG_MODE_NOLOG, tak je mozne provozovat log shipping (tj. aplikace nic nevypisuje na 
    * seriovy port, ale posila logy na server.).
-   * */
-  #define LOG_MODE RA_LOG_MODE_SERIAL
+   * 
+   */
+   #define LOG_MODE RA_LOG_MODE_SERIAL
+
+  /**
+   * POZOR! Pokud pouzivate desku ESP32-C3 bez USB-to-serial cipu, a chcete logovat
+   * pres nativni implemehtaci serioveho portu v USB (USB-CDC), zmente v AppFeatures.h definici LOG_SERIAL_PORT
+   */ 
 
 
 // ================================= konfigurace WiFi   
@@ -36,7 +42,7 @@
    * 0 = tlacitko FLASH (vpravo od konektoru, pri pohledu od kabelu) 
    * Pokud se pouziva tlacitko FLASH, je treba v wifiStatus_ShouldStartConfig() povolit delay(), 
    * aby uzivatel mohl stisknout tlacitko az po bootu! */
-  #define CONFIG_BUTTON 14
+  #define CONFIG_BUTTON 0
   #define CONFIG_BUTTON_START_CONFIG LOW
 
   /** heslo pro wifi konfiguracni AP; 8 znaku ci vice! */
@@ -146,7 +152,7 @@
    */
   #define USE_BLINKER
   /** (pokud je USE_BLINKER) pin, na kterem je stavova LED (muzete zadat LED_BUILTIN, pokud to na vasem zarizeni funguje) */
-  #define BLINKER_PIN 19
+  #define BLINKER_PIN 12
   /** (pokud je USE_BLINKER) kdy je LED vypnuta? (ESP32 - nejcasteji LOW, ESP8266 - nejcasteji HIGH ) */
   #define BLINKER_LED_OFF LOW
   /** (pokud je USE_BLINKER) je-li definovano, blika se jen pro konfiguracni portal a pro situaci, kdy je zaple wifi ale neni pripojene k AP */
@@ -197,7 +203,7 @@
 
 // ne-interrupt reseni planovani uloh
 // https://github.com/joysfera/arduino-tasker
-// import "Tasker" 2.0.0 in lib manager !!!
+// import "Tasker" 2.0.3 in lib manager !!!
 #include <Tasker.h>
 
 //Ticker Library - pro Blinker
@@ -212,4 +218,3 @@
 // included in src/ folder
 #include "src/ra/ratatoskr.h"
 #include "src/platform/platform.h"
-

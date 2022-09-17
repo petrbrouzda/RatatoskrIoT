@@ -16,7 +16,7 @@ Aplikace nemá žádnou specifickou konfiguraci zaslatelnou ze serveru.
 
 ## Nutné knihovny v Arduino IDE
 V library manageru je nutné mít nainstalováno:
-- Tasker 2.0.0
+- Tasker 2.0.3
 
 ## Knihovny a kód třetích stran 
 

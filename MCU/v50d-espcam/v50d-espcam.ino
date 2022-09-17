@@ -39,10 +39,6 @@
  * ESP 32:
  * - V Arduino IDE MUSI byt nastaveno rozdeleni flash tak, aby bylo alespon 1 M filesystemu SPIFS !
  * - V Arduino IDE MUSI byt nastaveno PSRAM: enabled (pokud se ma pouzivat PSRAM)
- * - If you’re using the built-in ADC, don’t forget to turn it back on before using it:
-        adc_power_on();
-     (pokud se ADC nema vypinat, je treba upravit v platform.cpp)
-   - TODO: kouknout na https://github.com/micropython/micropython/issues/4452 rtc_gpio_isolate(GPIO_NUM_12); 
 */
 
 //+++++ RatatoskrIoT +++++
@@ -403,6 +399,16 @@ void setup() {
     ratatoskr_startup( true );
   //----- RatatoskrIoT ----
 
+  //+++++ RatatoskrIoT +++++
+  // Pokud ve vasem scenari nema cenu, vymazte.
+  // Pri kazdem rebootu, ktery neni probuzenim z deep sleep, posleme na server informaci, ze k rebootu doslo 
+  // = ve vlastnostech zarizeni bude pocitadlo informujici o poctu rebootu.
+  if( ! deepSleepStart ) {
+     int chReboot = ra->defineChannel( DEVCLASS_IMPULSE_SUM, 7, (char*)"_reboot", 0 );
+     ra->postImpulseData( chReboot, 1, 1 );
+  }
+  //----- RatatoskrIoT ----
+
   //++++++ user code here +++++
   
   if( ESP.getPsramSize()==0 ) {
@@ -419,6 +425,8 @@ void setup() {
   tasker.setTimeout( inactivitySleep, 30000 );
   
   //------ user code here -----
+
+  
 }
 
 

@@ -25,4 +25,17 @@
 
   #endif
 
+// Zde se definuje Serial port, ktery bude pouzit pro logovani:
+
+  /* toto pouzijte, 
+   * - pokud pouzivate procesor s fyzickym seriovym portem (a USB-to-serial konvertorem)
+   * - pokud pouzijete ESP32-C3 a v nastaveni zvolite USB-CDC on boot: Enabled
+   */
+   #define LOG_SERIAL_PORT Serial
+  
+  /* toto pouzijte,
+   *  - pokud pouzivate ESP32-C3, nemate na desce USB-to-serial konvertor, a v nastaveni zvolite USB-CDC on boot: Disabled
+   */  
+  // #define LOG_SERIAL_PORT USBSerial  
+
 #endif

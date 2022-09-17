@@ -2925,7 +2925,15 @@ String WiFiManager::WiFi_psk(bool persistent) const {
 }
 
 #ifdef ESP32
-void WiFiManager::WiFiEvent(WiFiEvent_t event,system_event_info_t info){
+#if ESP_ARDUINO_VERSION_MAJOR == 1 
+  void WiFiManager::WiFiEvent(WiFiEvent_t event,system_event_info_t info){
+#else
+  #define SYSTEM_EVENT_STA_DISCONNECTED ARDUINO_EVENT_WIFI_STA_DISCONNECTED 
+  #define SYSTEM_EVENT_SCAN_DONE ARDUINO_EVENT_WIFI_SCAN_DONE 
+  #define disconnected wifi_sta_disconnected 
+
+  void WiFiManager::WiFiEvent(WiFiEvent_t event,arduino_event_info_t info){
+#endif
     if(!_hasBegun){
       // DEBUG_WM(DEBUG_VERBOSE,"[ERROR] WiFiEvent, not ready");
       Serial.println("[ERROR] wm not ready");

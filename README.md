@@ -24,6 +24,11 @@ Co je v repository?
 
 Detailní informace o změnách najdete  v souboru [CHANGELOG.md](CHANGELOG.md)
 
+### **2022-09-17**
+MCU 5.4.1
+- Podpora pro ESP32 arduino core 2.0.5
+- Podpora pro ESP32-C3  
+
 ### **2021-11-16**
 - Podpora pro exportní pluginy pro obrázky. Hotový exportní plugin pro dělání timelapse z kamer. Viz informace v config/local.neon.sample. 
 - Na stránce "Statistika" u senzoru se pro impulzní senzory vypisují měsíční a roční sumy, pro senzory spojitých veličin se vypisuje měsíční min/avg/max.

@@ -8,7 +8,7 @@
 #include "raTelemetryPayload.h"
 #include "TextCircularBuffer.h"
 
-#define RA_CORE_VERSION "5.3.3"
+#define RA_CORE_VERSION "5.4.1"
 
 // po chybe odesilani se nezkousi komunikovat po urcitou dobu
 #define RA_PAUSE_AFTER_ERR 15000

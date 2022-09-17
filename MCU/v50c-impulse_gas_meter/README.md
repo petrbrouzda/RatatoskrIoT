@@ -20,7 +20,7 @@ Najdete to v WifiConnection.ino a v ConfigProvider.ino uvedené komentářem
 
 ## Nutné knihovny v Arduino IDE
 V library manageru je nutné mít nainstalováno:
-- Tasker 2.0.0
+- Tasker 2.0.3
 
 ## Knihovny a kód třetích stran 
 

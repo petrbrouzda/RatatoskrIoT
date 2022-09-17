@@ -64,13 +64,13 @@ void raBlinker::setCode( int * code )
   this->changeState();
 
   /*
-  Serial.print( "raBlinker.setCode( " );
+  LOG_SERIAL_PORT.print( "raBlinker.setCode( " );
   int i = 0;
   while( 1 ) {
-    Serial.printf( "%d ", code[i] );
+    LOG_SERIAL_PORT.printf( "%d ", code[i] );
     if( code[i]==0 || code[i]==-1 ) break;
     i++;
   }
-  Serial.println( ")" );
+  LOG_SERIAL_PORT.println( ")" );
   */
 }

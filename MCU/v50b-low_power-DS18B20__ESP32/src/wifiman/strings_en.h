@@ -345,6 +345,12 @@ const char* const WIFI_MODES[] PROGMEM = { "NULL", "STA", "AP", "STA+AP" };
 //     int8_t                max_tx_power;   /**< This field is used for getting WiFi maximum transmitting power, call esp_wifi_set_max_tx_power to set the maximum transmitting power. */
 //     wifi_country_policy_t policy;  /**< country policy */
 // } wifi_country_t;
+
+// ESP core 2.0.4
+#ifdef CONFIG_ESP_PHY_MAX_TX_POWER
+  #define CONFIG_ESP32_PHY_MAX_TX_POWER CONFIG_ESP_PHY_MAX_TX_POWER
+#endif
+
 const wifi_country_t WM_COUNTRY_US{"US",1,11,CONFIG_ESP32_PHY_MAX_TX_POWER,WIFI_COUNTRY_POLICY_AUTO};
 const wifi_country_t WM_COUNTRY_CN{"CN",1,13,CONFIG_ESP32_PHY_MAX_TX_POWER,WIFI_COUNTRY_POLICY_AUTO};
 const wifi_country_t WM_COUNTRY_JP{"JP",1,14,CONFIG_ESP32_PHY_MAX_TX_POWER,WIFI_COUNTRY_POLICY_AUTO};

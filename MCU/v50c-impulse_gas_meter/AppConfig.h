@@ -20,6 +20,11 @@
    * */
   #define LOG_MODE RA_LOG_MODE_SERIAL
 
+  /**
+   * POZOR! Pokud pouzivate desku ESP32-C3 bez USB-to-serial cipu, a chcete logovat
+   * pres nativni implemehtaci serioveho portu v USB (USB-CDC), zmente v AppFeatures.h definici LOG_SERIAL_PORT
+   */ 
+
 
 // ================================= konfigurace WiFi   
 
@@ -198,7 +203,7 @@
 
 // ne-interrupt reseni planovani uloh
 // https://github.com/joysfera/arduino-tasker
-// import "Tasker" 2.0.0 in lib manager !!!
+// import "Tasker" 2.0.3 in lib manager !!!
 #include <Tasker.h>
 
 //Ticker Library - pro Blinker
@@ -213,4 +218,3 @@
 // included in src/ folder
 #include "src/ra/ratatoskr.h"
 #include "src/platform/platform.h"
-

@@ -47,7 +47,7 @@ Modul ESP32-CAM nemá USB port. Zde je schéma, jak propojit s USB-serial adapt�
 
 ## Nutné knihovny v Arduino IDE
 V library manageru je nutné mít nainstalováno:
-- Tasker 2.0.0
+- Tasker 2.0.3
 - **OneWire 2.3.5**
 - **DallasTemperature  3.8.0**
 

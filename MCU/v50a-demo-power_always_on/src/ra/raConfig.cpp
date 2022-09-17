@@ -82,7 +82,7 @@ void raConfig::zapisVystup( char * name, int namePos, char * value, int valuePos
     this->length++;
 }
 
-#define NAME_MAX 25
+#define KEY_NAME_MAX 25
 #define VALUE_MAX 255
 
 void raConfig::parseFromString(  char * input )
@@ -93,7 +93,7 @@ void raConfig::parseFromString(  char * input )
     this->createEncryptionKey( this->deviceId, this->appPassPhrase, aes_key );
 
     char * p = input;
-    char name[NAME_MAX+1];
+    char name[KEY_NAME_MAX+1];
     int namePos = 0;
     char value[VALUE_MAX+1];
     int valuePos = 0;
@@ -129,7 +129,7 @@ void raConfig::parseFromString(  char * input )
             } else if( *p=='=' )  {
                 state = 2;
             } else {
-                if( namePos<NAME_MAX ) {
+                if( namePos<KEY_NAME_MAX ) {
                     name[namePos++] = *p;
                 }
             }

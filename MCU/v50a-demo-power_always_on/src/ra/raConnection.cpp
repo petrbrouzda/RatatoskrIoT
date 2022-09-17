@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "../aes-sha/CRC32.h"
+#include "../../AppFeatures.h"
 
 #define CBC 1
 #define ECB 0
@@ -677,7 +678,7 @@ void raConnection::login()
 void sendText( WiFiClient * client, char * data )
 {
     #ifdef BLOB_DETAIL_LOG
-        Serial.printf( "> %s\n", data  );
+        LOG_SERIAL_PORT.printf( "> %s\n", data  );
     #endif
     client->println( data );
 }
@@ -691,8 +692,8 @@ void sendBin( WiFiClient * client, uint8_t * data, size_t len )
 {
     sentLen += len;
     #ifdef BLOB_DETAIL_LOG
-        Serial.printf( "> %s\n", data );
-        Serial.printf( "> %d .. %d\n", len , sentLen );
+        LOG_SERIAL_PORT.printf( "> %s\n", data );
+        LOG_SERIAL_PORT.printf( "> %d .. %d\n", len , sentLen );
     #endif
     client->write( data, len );
 }
@@ -727,7 +728,7 @@ char * getLine()
 {
     pos = 0;
     lineComplete = false;
-    //D/Serial.printf( "< [%s]\n", receivedLine  );
+    //D/LOG_SERIAL_PORT.printf( "< [%s]\n", receivedLine  );
     return receivedLine;
 }
 
@@ -744,7 +745,7 @@ int parseStatusLine( char * statusLine  )
         return -1;
     } 
     int status = atoi( p );
-    Serial.printf( "\nstatus=%d\n", status );
+    LOG_SERIAL_PORT.printf( "\nstatus=%d\n", status );
     if( status==200 ) {
         return 0;
     }
@@ -843,7 +844,7 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
         this->logger->log("blob connect failed.");
         return 2;
     } else {
-        Serial.println("Connected" );
+        LOG_SERIAL_PORT.println("Connected" );
     }
 
     char buf[256];
@@ -874,15 +875,15 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
         }
 
         if( n % 10240 == 0 ) {
-            Serial.printf( "%d kB  ", n/1024 );
+            LOG_SERIAL_PORT.printf( "%d kB  ", n/1024 );
         }
         #ifdef BLOB_DETAIL_LOG
-            Serial.printf( "n=%d, size=%d\n",n, blobSize );
+            LOG_SERIAL_PORT.printf( "n=%d, size=%d\n",n, blobSize );
             log_keys( (unsigned char*)this->sessionKey, (unsigned char*)aes_iv );
         #endif
         if (n+BLOCKSIZE_PLAIN < blobSize) {
             #ifdef BLOB_DETAIL_LOG
-                Serial.println( "v1" );
+                LOG_SERIAL_PORT.println( "v1" );
             #endif
             memcpy( binData, fbBuf, BLOCKSIZE_PLAIN );
             AES_init_ctx_iv(&ctx, (unsigned char const*)this->sessionKey, (unsigned char const*)aes_iv);
@@ -896,7 +897,7 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
         else if (blobSize % BLOCKSIZE_PLAIN > 0) {
             size_t remainder = blobSize % BLOCKSIZE_PLAIN;
             #ifdef BLOB_DETAIL_LOG
-                Serial.printf( "v2 remainder=%d\n", remainder );
+                LOG_SERIAL_PORT.printf( "v2 remainder=%d\n", remainder );
             #endif
             memcpy( binData, fbBuf, remainder );
             AES_init_ctx_iv(&ctx, (unsigned char const*)this->sessionKey, (unsigned char const*)aes_iv);
@@ -921,7 +922,7 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
     int status = 0;
     int rc = 3;
 
-    Serial.println("");
+    LOG_SERIAL_PORT.println("");
 
     while( (status!=3) && (startTimer + timeoutTimer) > millis() ) {
         if( !client.connected() ) {
@@ -962,7 +963,7 @@ int raConnection::sendBlobInt( unsigned char * blob, int blobSize, int startTime
         } // while (client.available()) {
 
         delay(100);      
-        Serial.print(".");
+        LOG_SERIAL_PORT.print(".");
     }
     client.stop();
     
@@ -1117,16 +1118,16 @@ void raConnection::setRssi( int rssi )
         if( strcmp( headerName, "Content-Type" ) == 0 ) {
             if( strcmp(headerContent, "application/octet-stream" ) == 0 ) {
                 hdrContentTypeOK = true;
-                Serial.print( " CT:OK ");
+                LOG_SERIAL_PORT.print( " CT:OK ");
             } else {
-                Serial.printf( " CT:[%s] ", headerContent );
+                LOG_SERIAL_PORT.printf( " CT:[%s] ", headerContent );
             }
         } else if( strcmp( headerName, "Content-Length" ) == 0 ) {
             hdrContentLength = atoi( headerContent );
-            Serial.print( " CL ");
+            LOG_SERIAL_PORT.print( " CL ");
         } else if( strcmp( headerName, "x-ra-1" ) == 0 ) {
             strcpy( secHeaderContent, headerContent );
-            Serial.print( " XR1 ");
+            LOG_SERIAL_PORT.print( " XR1 ");
         }
     }
 
@@ -1160,7 +1161,7 @@ void raConnection::setRssi( int rssi )
             this->logger->log("blob connect failed.");
             return 2;
         } else {
-            Serial.println("Connected" );
+            LOG_SERIAL_PORT.println("Connected" );
         }
 
         char buf[256];
@@ -1189,7 +1190,7 @@ void raConnection::setRssi( int rssi )
         int status = 0;
         int rc = 3;
 
-        Serial.println("");
+        LOG_SERIAL_PORT.println("");
 
         hdrContentTypeOK = false;
         hdrContentLength = 0;
@@ -1226,11 +1227,11 @@ void raConnection::setRssi( int rssi )
                     }
                 }
             } // while (client.available()) {
-            Serial.print(".");
+            LOG_SERIAL_PORT.print(".");
             delay(100);      
         }
         
-        Serial.println("");
+        LOG_SERIAL_PORT.println("");
 
         if( rc==0 && ( (!hdrContentTypeOK) || (hdrContentLength==0) ) ) {
             this->logger->log( "UPD bad content type / length" );
@@ -1275,7 +1276,7 @@ void raConnection::setRssi( int rssi )
                     break;
                 }
                 if( !client.available() ) {
-                    Serial.print(".");
+                    LOG_SERIAL_PORT.print(".");
                     delay(100);   
                     continue;
                 }
@@ -1287,7 +1288,7 @@ void raConnection::setRssi( int rssi )
                     dataRemaining = dataRemaining - bytesRead;
                     if( lastLog-dataRemaining > 50000 ) {
                         lastLog = dataRemaining;
-                        Serial.printf( " %d ", dataRemaining/1000 );
+                        LOG_SERIAL_PORT.printf( " %d ", dataRemaining/1000 );
                     }
                     // poslat data do update
                     Update.write( (BYTE *)dataBuf, bytesRead );
@@ -1295,7 +1296,7 @@ void raConnection::setRssi( int rssi )
             } // while( dataRemaining>0 ) {
 
             if( dataRemaining == 0 ) {
-                Serial.println("");
+                LOG_SERIAL_PORT.println("");
 
                 this->logger->log( "UPD read %d b", hdrContentLength );
                 // zkontrolovat hash

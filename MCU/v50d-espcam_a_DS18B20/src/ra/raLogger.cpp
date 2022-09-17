@@ -1,5 +1,6 @@
 
 #include "raLogger.h"
+#include "../../AppFeatures.h"
 
 raLogger::raLogger( int mode )
 {
@@ -40,7 +41,7 @@ void raLogger::log( const char * format, ... )
 #endif
 
     if( this->runSerial ) {
-        Serial.println( this->msgBuffer );
+        LOG_SERIAL_PORT.println( this->msgBuffer );
     }
 }
 

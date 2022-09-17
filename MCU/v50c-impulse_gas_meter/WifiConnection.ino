@@ -100,11 +100,14 @@ void startWifi()
 
     // logger->log("* wifi connecting [%s]", config.ssid );
     WiFi.persistent(false);
+    // pro ESP32-C3 se NESMI zavolat vypnuti WiFi, protoze se pak uz nevzbudi
     WiFi.softAPdisconnect(true);  // https://stackoverflow.com/questions/39688410/how-to-switch-to-normal-wifi-mode-to-access-point-mode-esp8266
                                   // https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/soft-access-point-class.html#softapdisconnect
+
     WiFi.disconnect(); 
     WiFi.mode(WIFI_STA); // sezere 50 kB RAM
     WiFi.disconnect(); 
+    WiFi.setAutoReconnect(true);
     wifi_ssid = config.getString("wifi_ssid","");
     WiFi.begin( wifi_ssid, config.getString("$wifi_pass","") );
 
@@ -123,6 +126,7 @@ void stopWifi()
     if( ! wifiPoweredOn ) return;
     
     wifiPoweredOn = false;
+    // pro ESP32-C3 se NESMI zavolat vypnuti WiFi, protoze se pak uz nevzbudi
     WiFi.softAPdisconnect(true);
     WiFi.mode( WIFI_OFF );
 #ifdef ESP8266
@@ -173,6 +177,12 @@ void networkConfig( const char * configApPass, bool runWifiOnStartup )
           // password will not be shown - default value is not set
           WiFiManagerParameter custom_pass("ra_pass", "RA passphrase", "", 31);
           wifiManager.addParameter(&custom_pass);
+          
+          //!!! nestandardni uprava - prepoctovy faktor
+          WiFiManagerParameter custom_prepocet("prepocet", "Prepocet na kWh (1.05 nebo 0.105)", config.getString("prepocet","1.05"), 31);
+          wifiManager.addParameter(&custom_prepocet);
+          //!!!
+          
       //--CONFIG--- custom parameters for WifiManager ----------------------------------------------------  
 
       char apName[20];
@@ -190,6 +200,11 @@ void networkConfig( const char * configApPass, bool runWifiOnStartup )
               config.setValue( "ra_url", custom_net_url.getValue());
               config.setValue( "ra_dev_name", custom_dev_name.getValue());
               config.setValue( "$ra_pass", custom_pass.getValue());
+
+              //!!! nestandardni uprava - prepoctovy faktor
+              config.setValue( "prepocet", custom_prepocet.getValue());
+              //!!!              
+              
           //--CONFIG--- custom parameters for WifiManager ----------------------------------------------------
 
           // vypis upravene konfigurace:
